@@ -47,6 +47,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
       },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com", // optional: for avatars if you use them
+      },
     ],
   },
 };

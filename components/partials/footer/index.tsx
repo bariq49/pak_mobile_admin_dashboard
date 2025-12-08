@@ -15,65 +15,17 @@ const Footer = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
   if (!mounted) {
     return null;
   }
-  if (!isMobile && sidebarType === "module") {
-    return <MobileFooter handleOpenSearch={handleOpenSearch} />;
-  }
-
-  if (footerType === "hidden") {
-    return null;
-  }
-
-  if (layout === "semibox") {
-    return (
-      <div className="xl:mx-20 mx-6">
-        <FooterLayout
-          className={cn(" rounded-md border", {
-            "ltr:xl:ml-[72px] rtl:xl:mr-[72px]": collapsed,
-            "ltr:xl:ml-[272px] rtl:xl:mr-[272px]": !collapsed,
-            "sticky bottom-0": footerType === "sticky",
-          })}
-        >
-          <FooterContent />
-        </FooterLayout>
-      </div>
-    );
-  }
-  if (sidebarType !== "module" && layout !== "horizontal") {
-    return (
-      <FooterLayout
-        className={cn("", {
-          "ltr:xl:ml-[248px] rtl:xl:mr-[248px]": !collapsed,
-          "ltr:xl:ml-[72px] rtl:xl:mr-[72px]": collapsed,
-          "sticky bottom-0": footerType === "sticky",
-        })}
-      >
-        <FooterContent />
-      </FooterLayout>
-    );
-  }
-
-  if (layout === "horizontal") {
-    return (
-      <FooterLayout
-        className={cn("", {
-          "sticky bottom-0": footerType === "sticky",
-        })}
-      >
-        <FooterContent />
-      </FooterLayout>
-    );
-  }
-
   return (
+    <div className="xl:mx-20 mx-6">
     <FooterLayout
-      className={cn("", {
-        "ltr:xl:ml-[300px] rtl:xl:mr-[300px]": !collapsed,
+      className={cn(" rounded-md border sticky bottom-4", {
         "ltr:xl:ml-[72px] rtl:xl:mr-[72px]": collapsed,
-        "sticky bottom-0": footerType === "sticky",
+        "ltr:xl:ml-[272px] rtl:xl:mr-[272px]": !collapsed,
       })}
     >
       <FooterContent />
     </FooterLayout>
+  </div>
   );
 };
 
@@ -83,16 +35,16 @@ const FooterContent = () => {
   return (
     <div className="block md:flex md:justify-between text-muted-foreground">
       <p className="sm:mb-0 text-xs md:text-sm">
-        COPYRIGHT © {new Date().getFullYear()} DashTail All rights Reserved
+        COPYRIGHT © {new Date().getFullYear()} Xalvion All rights Reserved
       </p>
       <p className="mb-0 text-xs md:text-sm">
-        Hand-crafted & Made by{" "}
+        Made by{" "}
         <a
           className="text-primary"
           target="__blank"
-          href="https://codeshaper.net"
+          href="#"
         >
-          Codeshaper
+          Xalvion Technologies
         </a>
       </p>
     </div>

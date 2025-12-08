@@ -1,7 +1,10 @@
 {
-  "name": "dash-tail",
+  "name": "xalvion-admin",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -60,6 +63,7 @@
     "@tanstack/react-query": "^5.8.3",
     "@tanstack/react-query-devtools": "^5.8.3",
     "@tanstack/react-table": "^8.9.8",
+    "@tanstack/react-virtual": "^3.13.12",
     "@types/cleave.js": "^1.4.12",
     "@types/mdx": "^2.0.11",
     "@types/negotiator": "^0.6.3",
@@ -91,6 +95,8 @@
     "framer-motion": "^10.16.3",
     "google-map-react": "^2.2.1",
     "html-to-image": "^1.11.11",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
     "lucide": "^0.270.0",
     "lucide-react": "^0.269.0",
@@ -141,10 +147,16 @@
   "devDependencies": {
     "@faker-js/faker": "^8.2.0",
     "@svgr/webpack": "^8.1.0",
+    "@types/d3-shape": "^3.1.7",
+    "@types/dagre": "^0.7.53",
+    "@types/geojson": "^7946.0.16",
+    "@types/js-cookie": "^3.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/leaflet": "^1.9.21",
     "@types/next": "^9.0.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.38",
     "@types/react-dom": "^18.3.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.9.3"
   }
 }

@@ -1,0 +1,75 @@
+"use client";
+
+import React, { useState, useMemo, useCallback } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/Tables/data-table/data-table";
+import {
+    getCategoryFilterColumns,
+    flattenCategories,
+    getCategoryColumns,
+} from "@/components/Tables/data-table/columns/category-columns";
+import { useGetCategoriesQuery, useDeleteCategoryMutation } from "@/hooks/api/use-categories-api";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+
+export default function CategoriesPage() {
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    const { data, isLoading, isFetching, error } = useGetCategoriesQuery({
+        page,
+        limit: pageSize,
+    });
+
+    const { mutateAsync: deleteCategory } = useDeleteCategoryMutation();
+    const handleDelete = (category: any) => deleteCategory(category._id);
+    const columns = useMemo(
+        () => getCategoryColumns({ onDelete: handleDelete }), []
+    );
+
+    const flattenedCategories = useMemo(
+        () => flattenCategories(data?.data?.categories ?? []),
+        [data]
+    );
+
+    const filters = getCategoryFilterColumns(flattenedCategories);
+    const pagination = data?.data?.pagination;
+
+    return (
+        <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-10">
+                <div>
+                    <CardTitle className="text-xl font-semibold">All Categories</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                        Manage, edit, and organize product categories easily.
+                    </CardDescription>
+                </div>
+
+                <Button className="mt-4 sm:mt-0" size="sm" asChild>
+                    <Link href="/en/categories/create">
+                        <Plus className="h-4 w-4 mr-2" /> Add Category
+                    </Link>
+                </Button>
+            </CardHeader>
+
+            <CardContent>
+                <DataTable
+                    columns={columns}
+                    data={flattenedCategories}
+                    searchKey="name"
+                    filterColumns={filters}
+                    loading={isLoading}
+                    fetching={isFetching}
+                    error={error ? "Failed to fetch categories" : null}
+                    pagination={pagination}
+                    onPageChange={setPage}
+                    onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        setPage(1);
+                    }}
+                />
+            </CardContent>
+        </Card>
+    );
+}
