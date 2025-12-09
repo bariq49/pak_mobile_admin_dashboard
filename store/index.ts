@@ -277,81 +277,81 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
   
   // Basic Info Actions
   setName: (value: string) => {
-    console.log("[ProductStore] setName:", value);
+    // console.log("[ProductStore] setName:", value);
     set({ name: value });
   },
   setBrand: (value: string) => {
-    console.log("[ProductStore] setBrand:", value);
+    // console.log("[ProductStore] setBrand:", value);
     set({ brand: value });
   },
   setModel: (value: string) => {
-    console.log("[ProductStore] setModel:", value);
+    // console.log("[ProductStore] setModel:", value);
     set({ model: value });
   },
   setSku: (value: string) => {
-    console.log("[ProductStore] setSku:", value);
+    // console.log("[ProductStore] setSku:", value);
     set({ sku: value });
   },
   setCategory: (value: string) => {
-    console.log("[ProductStore] setCategory:", value);
+    // console.log("[ProductStore] setCategory:", value);
     set({ category: value });
   },
   setTags: (value: string[]) => {
-    console.log("[ProductStore] setTags:", value);
+    // console.log("[ProductStore] setTags:", value);
     set({ tags: value });
   },
   setCondition: (value: string) => {
-    console.log("[ProductStore] setCondition:", value);
+    // console.log("[ProductStore] setCondition:", value);
     set({ condition: value });
   },
   
   // Pricing Actions
   setPrice: (value: string) => {
-    console.log("[ProductStore] setPrice:", value);
+    // console.log("[ProductStore] setPrice:", value);
     set({ price: value });
   },
   setSalePrice: (value: string) => {
-    console.log("[ProductStore] setSalePrice:", value);
+    // console.log("[ProductStore] setSalePrice:", value);
     set({ salePrice: value });
   },
   setCostPrice: (value: string) => {
-    console.log("[ProductStore] setCostPrice:", value);
+    // console.log("[ProductStore] setCostPrice:", value);
     set({ costPrice: value });
   },
   setTax: (value: string) => {
-    console.log("[ProductStore] setTax:", value);
+    // console.log("[ProductStore] setTax:", value);
     set({ tax: value });
   },
   setQuantity: (value: string) => {
-    console.log("[ProductStore] setQuantity:", value, "(main product quantity, separate from variant stock)");
+    // console.log("[ProductStore] setQuantity:", value, "(main product quantity, separate from variant stock)");
     set({ quantity: value });
   },
   
   // Media Actions
   setFeaturedImage: (value: string) => {
-    console.log("[ProductStore] setFeaturedImage:", value);
+    // console.log("[ProductStore] setFeaturedImage:", value);
     set({ featuredImage: value });
   },
   setFeaturedImageFile: (value: File | null) => {
-    console.log("[ProductStore] setFeaturedImageFile:", value?.name || "null");
+    // console.log("[ProductStore] setFeaturedImageFile:", value?.name || "null");
     set({ featuredImageFile: value });
   },
   setGalleryImages: (value: string[]) => {
-    console.log("[ProductStore] setGalleryImages:", value.length, "images");
+    // console.log("[ProductStore] setGalleryImages:", value.length, "images");
     set({ galleryImages: value });
   },
   setGalleryImageFiles: (value: File[]) => {
-    console.log("[ProductStore] setGalleryImageFiles:", value.length, "files");
+    // console.log("[ProductStore] setGalleryImageFiles:", value.length, "files");
     set({ galleryImageFiles: value });
   },
   setVideoUrl: (value: string) => {
-    console.log("[ProductStore] setVideoUrl:", value);
+    // console.log("[ProductStore] setVideoUrl:", value);
     set({ videoUrl: value });
   },
   
   // Variants Actions
   setVariants: (value: Variant[]) => {
-    console.log("[ProductStore] setVariants:", value.length, "variants");
+    // console.log("[ProductStore] setVariants:", value.length, "variants");
     set({ variants: value });
   },
   addVariant: () => {
@@ -368,7 +368,7 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
       sku: "",
       image: "",
     };
-    console.log("[ProductStore] addVariant: Adding new variant", newVariant.id);
+    // console.log("[ProductStore] addVariant: Adding new variant", newVariant.id);
     set({ variants: [...currentVariants, newVariant] });
   },
   removeVariant: (id: string) => {
@@ -474,50 +474,59 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
   
   // Initialize from product data (for edit mode) - Single atomic update
   initializeFromProduct: (product: any) => {
-    console.log("[ProductStore] initializeFromProduct: Called with product:", product);
-    console.log("[ProductStore] Product keys:", Object.keys(product || {}));
-    console.log("[ProductStore] Product values:", {
-      name: product?.name,
-      brand: product?.brand,
-      model: product?.model,
-      price: product?.price,
-      quantity: product?.quantity,
-      category: product?.category,
-      variants: product?.variants,
-      images: product?.images,
-    });
+    // Extract featured image - API has mainImage or image.thumbnail or image.original
+    let featuredImageUrl = "";
+    if (product.mainImage) {
+      featuredImageUrl = product.mainImage;
+    } else if (product.image?.thumbnail) {
+      featuredImageUrl = product.image.thumbnail;
+    } else if (product.image?.original) {
+      featuredImageUrl = product.image.original;
+    }
     
-    // Single atomic set() call to update all fields at once - prevents multiple re-renders
+    // Extract gallery images - API has galleryImages array or gallery array
+    let galleryImageUrls: string[] = [];
+    if (Array.isArray(product.galleryImages) && product.galleryImages.length > 0) {
+      galleryImageUrls = product.galleryImages
+        .map((img: any) => typeof img === 'string' ? img : img?.url || img?.original || img?.thumbnail)
+        .filter((url: any) => url && typeof url === 'string');
+    } else if (Array.isArray(product.gallery) && product.gallery.length > 0) {
+      galleryImageUrls = product.gallery
+        .map((img: any) => typeof img === 'string' ? img : img?.url || img?.original || img?.thumbnail)
+        .filter((url: any) => url && typeof url === 'string');
+    }
+    
+    // Single atomic set() call to update all fields at once
     const newState = {
-      // Basic Info - with defaults
-      name: product.name || "",
+      // Basic Info
+      name: product.name || product.productName || "",
       brand: product.brand || "",
       model: product.model || "",
       sku: product.sku || "",
       category: typeof product.category === "string" 
         ? product.category 
-        : product.category?._id || "",
+        : product.category?._id || product.category?.id || "",
       condition: product.condition || "new",
-      tags: Array.isArray(product.tags) ? product.tags : [],
+      tags: Array.isArray(product.tags) ? product.tags.map((t: any) => typeof t === 'string' ? t : t.name || t) : [],
       
-      // Pricing - convert to strings with defaults
+      // Pricing - handle both salePrice and sale_price
       price: product.price !== undefined ? product.price.toString() : "0",
-      salePrice: product.salePrice !== undefined ? product.salePrice.toString() : "0",
+      salePrice: (product.salePrice !== undefined ? product.salePrice : product.sale_price !== undefined ? product.sale_price : 0).toString(),
       costPrice: product.costPrice !== undefined ? product.costPrice.toString() : "0",
       tax: product.tax !== undefined ? product.tax.toString() : "0",
       quantity: product.quantity !== undefined ? product.quantity.toString() : "0",
       
-      // Media - with defaults
-      featuredImage: product.thumbnail || product.images?.[0] || "",
-      featuredImageFile: null, // Always null for edit mode (existing images are URLs)
-      galleryImages: Array.isArray(product.images) ? product.images : [],
-      galleryImageFiles: [], // Always empty array for edit mode (no new files until user uploads)
+      // Media
+      featuredImage: featuredImageUrl,
+      featuredImageFile: null,
+      galleryImages: galleryImageUrls,
+      galleryImageFiles: [],
       videoUrl: product.videoUrl || "",
       
-      // Variants - ensure at least one variant exists
+      // Variants - API has variants array (might be empty)
       variants: (product.variants && Array.isArray(product.variants) && product.variants.length > 0)
-        ? product.variants.map((v: any) => ({
-            id: v._id || v.id || Date.now().toString() + Math.random(),
+        ? product.variants.map((v: any, index: number) => ({
+            id: v._id || v.id || `variant-${Date.now()}-${index}`,
             storage: v.storage || "",
             ram: v.ram || "",
             color: v.color || "",
@@ -526,55 +535,168 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
             price: v.price !== undefined ? v.price.toString() : "",
             stock: v.stock !== undefined ? v.stock.toString() : "",
             sku: v.sku || "",
-            image: v.image || "",
+            image: typeof v.image === 'string' ? v.image : v.image?.thumbnail || v.image?.original || "",
           }))
-        : [{ id: "1", storage: "", ram: "", color: "", bundle: "", warranty: "", price: "", stock: "", sku: "", image: "" }],
+        : [{ id: `variant-${Date.now()}`, storage: "", ram: "", color: "", bundle: "", warranty: "", price: "", stock: "", sku: "", image: "" }],
       
-      // Technical Specifications - with defaults
-      displaySize: product.specifications?.displaySize || "",
-      displayType: product.specifications?.displayType || "",
-      processor: product.specifications?.processor || "",
-      rearCamera: product.specifications?.rearCamera || "",
-      frontCamera: product.specifications?.frontCamera || "",
-      battery: product.specifications?.battery || "",
-      fastCharging: product.specifications?.fastCharging || "",
-      os: product.specifications?.os || "",
-      network: product.specifications?.network || "",
-      connectivity: product.specifications?.connectivity || "",
-      simSupport: product.specifications?.simSupport || "",
-      dimensions: product.specifications?.dimensions || "",
-      weight: product.specifications?.weight || "",
+      // Technical Specifications - API uses technicalSpecifications, not specifications
+      displaySize: product.technicalSpecifications?.displaySize || "",
+      displayType: product.technicalSpecifications?.displayType || "",
+      processor: product.technicalSpecifications?.processor || "",
+      rearCamera: product.technicalSpecifications?.rearCamera || "",
+      frontCamera: product.technicalSpecifications?.frontCamera || "",
+      battery: product.technicalSpecifications?.battery || "",
+      fastCharging: product.technicalSpecifications?.fastCharging || "",
+      os: product.technicalSpecifications?.os || "",
+      network: product.technicalSpecifications?.network || "",
+      connectivity: product.technicalSpecifications?.connectivity || "",
+      simSupport: product.technicalSpecifications?.simSupport || "",
+      dimensions: product.technicalSpecifications?.dimensions || "",
+      weight: product.technicalSpecifications?.weight || "",
       
-      // Additional - with defaults
+      // Additional - API uses whatsInTheBox (capital T), not whatsInBox
       description: product.description || "",
-      whatsInBox: product.whatsInBox || "",
-      status: product.status || "draft",
+      whatsInBox: product.whatsInTheBox || product.whatsInBox || "",
+      status: product.status || (product.is_active ? "published" : "draft"),
       featured: product.featured || false,
       visibility: product.visibility || "visible",
       publishDate: product.publishDate || "",
     };
     
-    console.log("[ProductStore] initializeFromProduct: New state to set:", {
-      name: newState.name,
-      brand: newState.brand,
-      price: newState.price,
-      quantity: newState.quantity,
-    });
-    
-    // Apply the state update
+    // Apply the state update atomically
     set(newState);
+  },
+}));
+
+// Category Form Store
+interface CategoryFormStoreState {
+  // Basic Info
+  name: string;
+  slug: string;
+  description: string;
+  
+  // Media
+  image: string;
+  imageFile: File | null;
+  
+  // Status
+  isActive: boolean;
+  
+  // SEO
+  metaTitle: string;
+  metaDescription: string;
+  
+  // Actions - Basic Info
+  setName: (value: string) => void;
+  setSlug: (value: string) => void;
+  setDescription: (value: string) => void;
+  
+  // Actions - Media
+  setImage: (value: string) => void;
+  setImageFile: (value: File | null) => void;
+  
+  // Actions - Status
+  setIsActive: (value: boolean) => void;
+  
+  // Actions - SEO
+  setMetaTitle: (value: string) => void;
+  setMetaDescription: (value: string) => void;
+  
+  // Reset store to initial state
+  resetCategoryForm: () => void;
+  
+  // Initialize from category data (for edit mode)
+  initializeFromCategory: (category: any) => void;
+}
+
+const initialCategoryFormState = {
+  // Basic Info
+  name: "",
+  slug: "",
+  description: "",
+  
+  // Media
+  image: "",
+  imageFile: null as File | null,
+  
+  // Status
+  isActive: true,
+  
+  // SEO
+  metaTitle: "",
+  metaDescription: "",
+};
+
+export const useCategoryFormStore = create<CategoryFormStoreState>()((set, get) => ({
+  ...initialCategoryFormState,
+  
+  // Basic Info Actions
+  setName: (value: string) => {
+    set({ name: value });
+    // Auto-generate slug from name
+    if (value) {
+      const generatedSlug = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      set({ slug: generatedSlug });
+    }
+  },
+  setSlug: (value: string) => {
+    set({ slug: value });
+  },
+  setDescription: (value: string) => {
+    set({ description: value });
+  },
+  
+  // Media Actions
+  setImage: (value: string) => {
+    set({ image: value });
+  },
+  setImageFile: (value: File | null) => {
+    set({ imageFile: value });
+  },
+  
+  // Status Actions
+  setIsActive: (value: boolean) => {
+    set({ isActive: value });
+  },
+  
+  // SEO Actions
+  setMetaTitle: (value: string) => {
+    set({ metaTitle: value });
+  },
+  setMetaDescription: (value: string) => {
+    set({ metaDescription: value });
+  },
+  
+  // Reset store to initial state
+  resetCategoryForm: () => {
+    set(initialCategoryFormState);
+  },
+  
+  // Initialize from category data (for edit mode)
+  initializeFromCategory: (category: any) => {
+    if (!category || typeof category !== 'object') {
+      return;
+    }
+
+    let imageUrl = "";
+    if (category.image) {
+      imageUrl = typeof category.image === 'string' ? category.image : category.image.url || category.image.original || "";
+    }
+
+    const newState = {
+      name: category.name || "",
+      slug: category.slug || "",
+      description: category.description || "",
+      image: imageUrl,
+      imageFile: null,
+      isActive: category.isActive !== undefined ? category.isActive : (category.is_active !== undefined ? category.is_active : true),
+      metaTitle: category.metaTitle || category.meta_title || "",
+      metaDescription: category.metaDescription || category.meta_description || "",
+    };
     
-    // Verify the state was set correctly
-    setTimeout(() => {
-      const currentState = get();
-      console.log("[ProductStore] State after set() - verification:", {
-        name: currentState.name,
-        brand: currentState.brand,
-        price: currentState.price,
-        quantity: currentState.quantity,
-      });
-    }, 0);
-    
-    console.log("[ProductStore] initializeFromProduct: Product data initialized successfully (atomic update)");
+    set(newState);
   },
 }));

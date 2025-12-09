@@ -99,26 +99,23 @@ export async function getProductsApi(page = 1, limit = 10): Promise<GetProductsR
   const { data } = await http.get<GetProductsResponse>(
     `${API_RESOURCES.PRODUCTS}?page=${page}&limit=${limit}`
   );
-  console.log("Fetched Products:", data);
+  // console.log("Fetched Products:", data);
   return data;
 }
 
 // GET SINGLE PRODUCT BY ID
 export async function getProductByIdApi(id: string): Promise<{ status: string; data: Product }> {
-  const { data } = await http.get<{ status: string; data: Product }>(
-    `${API_RESOURCES.PRODUCTS}/${id}`
-  );
+  const response = await http.get<any>(`${API_RESOURCES.PRODUCTS}/${id}`);
+  const responseData = response.data;
   
-  // Handle different response structures
-  // Some APIs return { data: { data: Product } } or { data: Product }
-  if (data && 'data' in data && data.data) {
-    return data;
-  } else if (data && !('data' in data)) {
-    // If the response itself is the product
-    return { status: 'success', data: data as any };
-  } else {
+  // Extract product from response structure: responseData.data.product
+  const productData = responseData?.data?.product;
+  
+  if (!productData) {
     throw new Error("Product not found in API response");
   }
+  
+  return { status: 'success', data: productData };
 }
 
 // CREATE NEW PRODUCT
@@ -128,10 +125,10 @@ export async function createProductApi(payload: Record<string, any>) {
   return data;
 }
 
-// UPDATE PRODUCT (using PUT method)
+// UPDATE PRODUCT (using PATCH method)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateProductApi(id: string, payload: Record<string, any>) {
-  const { data } = await http.put(`${API_RESOURCES.PRODUCTS}/${id}`, payload);
+  const { data } = await http.patch(`${API_RESOURCES.PRODUCTS}/${id}`, payload);
   return data;
 }
 

@@ -23,8 +23,10 @@ export interface FlatCategory extends Category {
 
 export function getCategoryColumns({
     onDelete,
+    onEdit,
 }: {
     onDelete: (category: FlatCategory) => void;
+    onEdit?: (category: FlatCategory) => void;
 }): ColumnDef<FlatCategory>[] {
     return [
         {
@@ -154,6 +156,7 @@ export function getCategoryColumns({
                                 {
                                     label: "Edit",
                                     icon: <Edit className="h-4 w-4" />,
+                                    onClick: () => onEdit?.(category),
                                 },
                                 {
                                     label: "Duplicate",

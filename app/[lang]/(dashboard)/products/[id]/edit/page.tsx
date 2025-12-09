@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import ProductForm, { ProductFormData } from "@/components/product-form";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
@@ -22,6 +22,7 @@ const EditProductPage = () => {
   const params = useParams();
   const id = params.id as string;
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   // Validate product ID
   if (!id) {
@@ -158,6 +159,11 @@ const EditProductPage = () => {
 
   // Handle form submission
   const handleSubmit = async (data: ProductFormData) => {
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current || isLoading) {
+      return;
+    }
+
     // Validate form
     const errors = validateForm(data);
     const errorKeys = Object.keys(errors) as (keyof ValidationErrors)[];
@@ -171,6 +177,7 @@ const EditProductPage = () => {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     const loadingToastId = toast.loading("Updating product...");
 
@@ -178,9 +185,8 @@ const EditProductPage = () => {
       // Build FormData
       const formData = buildFormData(data);
 
-      // Send as multipart/form-data using PUT method
-      await http.put(`${API_RESOURCES.PRODUCTS}/${id}`, formData, {
-        // Increase timeout for file uploads
+      // Send as multipart/form-data using PATCH method
+      await http.patch(`${API_RESOURCES.PRODUCTS}/${id}`, formData, {
         timeout: 120000,
       });
 
@@ -205,6 +211,8 @@ const EditProductPage = () => {
         errorMessage = error.response.data.message;
       } else if (error?.response?.status === 413) {
         errorMessage = "File size too large. Please use smaller images.";
+      } else if (error?.response?.status === 429) {
+        errorMessage = "Too many requests. Please wait a moment and try again.";
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -215,11 +223,17 @@ const EditProductPage = () => {
       });
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
   // Handle save as draft
   const handleSaveDraft = async (data: ProductFormData) => {
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current || isLoading) {
+      return;
+    }
+
     // For draft, only name is required
     if (!data.name?.trim()) {
       toast.error("Validation Error", {
@@ -228,6 +242,7 @@ const EditProductPage = () => {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     const loadingToastId = toast.loading("Saving draft...");
 
@@ -236,8 +251,8 @@ const EditProductPage = () => {
       const draftData = { ...data, status: "draft" as const };
       const formData = buildFormData(draftData);
 
-      // Send as multipart/form-data using PUT method
-      await http.put(`${API_RESOURCES.PRODUCTS}/${id}`, formData, {
+      // Send as multipart/form-data using PATCH method
+      await http.patch(`${API_RESOURCES.PRODUCTS}/${id}`, formData, {
         timeout: 120000,
       });
 
@@ -261,6 +276,8 @@ const EditProductPage = () => {
         errorMessage = error.response.data.message;
       } else if (error?.response?.status === 413) {
         errorMessage = "File size too large. Please use smaller images.";
+      } else if (error?.response?.status === 429) {
+        errorMessage = "Too many requests. Please wait a moment and try again.";
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -271,6 +288,7 @@ const EditProductPage = () => {
       });
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 

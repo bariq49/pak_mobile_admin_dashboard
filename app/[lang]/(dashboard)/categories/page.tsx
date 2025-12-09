@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/Tables/data-table/data-table";
 import {
@@ -12,8 +13,10 @@ import {
 import { useGetCategoriesQuery, useDeleteCategoryMutation } from "@/hooks/api/use-categories-api";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CategoriesPage() {
+    const router = useRouter();
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
@@ -24,8 +27,22 @@ export default function CategoriesPage() {
 
     const { mutateAsync: deleteCategory } = useDeleteCategoryMutation();
     const handleDelete = (category: any) => deleteCategory(category._id);
+
+    const handleEdit = (category: any) => {
+        // Get the category ID - use _id (MongoDB ID) not slug
+        const categoryId = category._id || category.id;
+
+        if (!categoryId) {
+            toast.error("Category ID not found");
+            return;
+        }
+
+        // Navigate to the edit page using the ID
+        router.push(`/en/categories/${categoryId}/edit`);
+    };
+
     const columns = useMemo(
-        () => getCategoryColumns({ onDelete: handleDelete }), []
+        () => getCategoryColumns({ onDelete: handleDelete, onEdit: handleEdit }), []
     );
 
     const flattenedCategories = useMemo(

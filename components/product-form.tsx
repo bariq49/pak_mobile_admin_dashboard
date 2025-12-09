@@ -239,6 +239,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Loading state for fetching product data in edit mode
   const [isFetchingProduct, setIsFetchingProduct] = useState(mode === "edit");
   
+  // Ref to prevent duplicate submissions
+  const isSubmittingRef = useRef(false);
+  
   // Use product form store for all form state
   const {
     // Basic Info
@@ -296,17 +299,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
   } = useProductFormStore();
 
   // Debug: Log store values on every render to see if they're updating
-  useEffect(() => {
-    console.log("[ProductForm] Store values in component:", {
-      name,
-      brand,
-      model,
-      price,
-      quantity,
-      category,
-      variantsCount: variants?.length,
-    });
-  }, [name, brand, model, price, quantity, category, variants]);
+  // useEffect(() => {
+  //   console.log("[ProductForm] Store values in component:", {
+  //     name,
+  //     brand,
+  //     model,
+  //     price,
+  //     quantity,
+  //     category,
+  //     variantsCount: variants?.length,
+  //   });
+  // }, [name, brand, model, price, quantity, category, variants]);
 
   // Categories state (fetched from API)
   const [categories, setCategories] = useState<Category[]>([]);
@@ -335,61 +338,32 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Fetch product data in edit mode and initialize store
   useEffect(() => {
     const fetchProduct = async () => {
-      console.log("[ProductForm] useEffect triggered - mode:", mode, "productId:", productId);
+      // console.log("[ProductForm] useEffect triggered - mode:", mode, "productId:", productId);
       
       if (mode === "edit" && productId) {
         try {
           setIsFetchingProduct(true);
-          console.log("[ProductForm] Fetching product with ID:", productId);
+          // console.log("[ProductForm] Fetching product with ID:", productId);
           
           const response = await getProductByIdApi(productId);
-          console.log("[ProductForm] API Response:", response);
           
-          // Handle different response structures
-          let productData = null;
-          if (response?.data) {
-            productData = response.data;
-          } else if (response && typeof response === 'object' && !response.status) {
-            // If response itself is the product
-            productData = response;
-          }
-          
-          console.log("[ProductForm] Extracted productData:", productData);
+          // getProductByIdApi returns { status: string, data: Product }
+          const productData = response.data;
           
           if (!productData) {
-            console.error("[ProductForm] Product data is null or undefined");
             throw new Error("Product data not found");
           }
           
-          // Log before initialization
-          console.log("[ProductForm] About to initialize store with product:", {
-            name: (productData as any)?.name,
-            brand: (productData as any)?.brand,
-            price: (productData as any)?.price,
-            quantity: (productData as any)?.quantity,
-          });
-          
-          // Use store's initializeFromProduct method to populate all fields (atomic update)
+          // Initialize store with product data
           initializeFromProduct(productData);
           
-          // Log after initialization - check store state
-          setTimeout(() => {
-            const storeState = useProductFormStore.getState();
-            console.log("[ProductForm] Store state after initialization:", {
-              name: storeState.name,
-              brand: storeState.brand,
-              price: storeState.price,
-              quantity: storeState.quantity,
-            });
-          }, 100);
-          
         } catch (error: any) {
-          console.error("[ProductForm] Failed to fetch product:", error);
-          console.error("[ProductForm] Error details:", {
-            message: error?.message,
-            response: error?.response?.data,
-            status: error?.response?.status,
-          });
+          // console.error("[ProductForm] Failed to fetch product:", error);
+          // console.error("[ProductForm] Error details:", {
+          //   message: error?.message,
+          //   response: error?.response?.data,
+          //   status: error?.response?.status,
+          // });
           toast.error("Failed to load product", {
             description: error?.response?.data?.message || error?.message || "Product not found",
           });
@@ -399,7 +373,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           setIsFetchingProduct(false);
         }
       } else if (mode === "create") {
-        console.log("[ProductForm] Create mode - resetting form");
+        // console.log("[ProductForm] Create mode - resetting form");
         // Reset store to initial state for create mode
         resetProductForm();
         setIsFetchingProduct(false);
@@ -707,12 +681,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Handle submit - reads from store and calls API
   const handleSubmit = async () => {
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current || isLoading) {
+      return;
+    }
+    
     // Collect data from store
     const data = collectFormData();
 
     // If external onSubmit is provided, use it (backward compatibility)
     if (onSubmit) {
-      await onSubmit(data);
+      if (isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
+      try {
+        await onSubmit(data);
+      } finally {
+        isSubmittingRef.current = false;
+      }
       return;
     }
 
@@ -730,6 +715,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       return;
     }
 
+    // Set submitting flag immediately to prevent duplicate clicks
+    isSubmittingRef.current = true;
     setInternalIsLoading(true);
     const loadingToastId = toast.loading(
       mode === "create" ? "Creating product..." : "Updating product..."
@@ -764,7 +751,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           throw new Error("Product ID is required for editing");
         }
 
-        await http.put(`${API_RESOURCES.PRODUCTS}/${productId}`, formData, {
+        await http.patch(`${API_RESOURCES.PRODUCTS}/${productId}`, formData, {
           timeout: 120000, // Increase timeout for file uploads
         });
 
@@ -803,12 +790,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Handle save draft - reads from store and calls API
   const handleSaveDraft = async () => {
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current || isLoading) {
+      return;
+    }
+    
     // Collect data from store
     const data = collectFormData();
 
     // If external onSaveDraft is provided, use it (backward compatibility)
     if (onSaveDraft) {
-      await onSaveDraft({ ...data, status: "draft" });
+      if (isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
+      try {
+        await onSaveDraft({ ...data, status: "draft" });
+      } finally {
+        isSubmittingRef.current = false;
+      }
       return;
     }
 
@@ -821,6 +819,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       return;
     }
 
+    isSubmittingRef.current = true;
     setInternalIsLoading(true);
     const loadingToastId = toast.loading("Saving draft...");
 
@@ -849,12 +848,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
           router.push("/en/products");
         }, 1500);
       } else {
-        // PUT for edit
+        // PATCH for edit
         if (!productId) {
           throw new Error("Product ID is required for editing");
         }
 
-        await http.put(`${API_RESOURCES.PRODUCTS}/${productId}`, formData, {
+        await http.patch(`${API_RESOURCES.PRODUCTS}/${productId}`, formData, {
           timeout: 120000,
         });
 
@@ -877,6 +876,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
         errorMessage = error.response.data.message;
       } else if (error?.response?.status === 413) {
         errorMessage = "File size too large. Please use smaller images.";
+      } else if (error?.response?.status === 429) {
+        errorMessage = "Too many requests. Please wait a moment and try again.";
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -887,6 +888,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       });
     } finally {
       setInternalIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -2100,10 +2102,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <Card className="sticky top-6">
             <CardContent className="pt-6 space-y-3">
               <Button 
+                type="button"
                 className="w-full" 
                 size="lg"
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isLoading || isSubmittingRef.current}
               >
                 {isLoading ? (
                   <>
@@ -2115,12 +2118,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 )}
               </Button>
               <Button
+                type="button"
                 variant="outline"
                 color="secondary"
                 className="w-full"
                 size="lg"
                 onClick={handleSaveDraft}
-                disabled={isLoading}
+                disabled={isLoading || isSubmittingRef.current}
               >
                 Save as Draft
               </Button>
