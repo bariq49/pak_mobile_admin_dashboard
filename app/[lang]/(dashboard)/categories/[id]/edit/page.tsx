@@ -48,14 +48,20 @@ const EditCategoryPage = () => {
     formData.append("name", data.name);
     if (data.slug) formData.append("slug", data.slug);
     if (data.description) formData.append("description", data.description);
+    
+    // Parent and Type
+    if (data.parent) {
+      formData.append("parent", data.parent);
+    }
+    formData.append("type", data.type);
 
-    // Image - only append if it's a new file
+    // Image - only append if it's a new file (API expects "thumbnail")
     if (data.imageFile) {
-      formData.append("image", data.imageFile);
+      formData.append("thumbnail", data.imageFile);
     }
 
-    // Status
-    formData.append("isActive", data.isActive.toString());
+    // Status (API uses "active" not "isActive")
+    formData.append("active", data.isActive.toString());
 
     // SEO
     if (data.metaTitle) formData.append("metaTitle", data.metaTitle);
@@ -160,13 +166,24 @@ const EditCategoryPage = () => {
       const draftData = { ...data, isActive: false };
       const formData = buildFormData(draftData);
 
-      // Send as multipart/form-data using PATCH method
-      await http.patch(`${API_RESOURCES.CATEGORIES}/${id}`, formData, {
-        timeout: 120000,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Use appropriate endpoint based on whether it's a subcategory
+      if (data.parent) {
+        // Update subcategory draft
+        await http.patch(`${API_RESOURCES.SUBCATEGORIES}/${id}`, formData, {
+          timeout: 120000,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      } else {
+        // Update root category draft
+        await http.patch(`${API_RESOURCES.CATEGORIES}/${id}`, formData, {
+          timeout: 120000,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      }
 
       // Success
       toast.success("Draft saved!", {

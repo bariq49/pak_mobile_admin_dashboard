@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
+import { ProductDetails } from "@/components/product-details";
+import { Product } from "@/api/product/products.api";
 
 interface LabelOption {
   label: string;
@@ -176,18 +178,45 @@ export function DataTableRowActions<TData>({
 
       {/* Details Modal */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Item Details</DialogTitle>
-            <DialogDescription>Here’s more info about this row.</DialogDescription>
+            <DialogTitle>
+              {(() => {
+                const itemObj = item as any;
+                return (itemObj?.name && typeof itemObj.name === 'string')
+                  ? `${itemObj.name} - Details`
+                  : 'Product Details';
+              })()}
+            </DialogTitle>
+            <DialogDescription>
+              {(() => {
+                const itemObj = item as any;
+                return (itemObj?.name && typeof itemObj.name === 'string')
+                  ? `Complete information about ${itemObj.name}`
+                  : 'View complete product information';
+              })()}
+            </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 space-y-2 text-sm">
-            {Object.entries(item as Record<string, any>).map(([key, value]) => (
-              <div key={key} className="flex justify-between border-b py-1">
-                <span className="font-medium capitalize">{key}</span>
-                <span>{String(value)}</span>
-              </div>
-            ))}
+          <div className="mt-4">
+            {/* Check if item is a Product and render ProductDetails component */}
+            {(() => {
+              const itemObj = item as any;
+              // Check if it looks like a Product (has name and price properties)
+              if (itemObj && typeof itemObj === 'object' && 'name' in itemObj && 'price' in itemObj) {
+                return <ProductDetails product={itemObj as Product} />;
+              }
+              // Fallback to generic display
+              return (
+                <div className="space-y-2 text-sm">
+                  {Object.entries(itemObj as Record<string, any>).map(([key, value]) => (
+                    <div key={key} className="flex justify-between border-b py-1">
+                      <span className="font-medium capitalize">{key}</span>
+                      <span>{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </DialogContent>
       </Dialog>

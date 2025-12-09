@@ -266,6 +266,11 @@ export const productColumns = ({ onDelete, onEdit }: ProductColumnProps): Column
         row={row}
         actions={[
           {
+            label: "View Details",
+            icon: <Eye className="h-4 w-4" />,
+            openModal: true,
+          },
+          {
             label: "Edit",
             icon: <Edit className="h-4 w-4" />,
             onClick: () => onEdit(row.original),

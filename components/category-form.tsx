@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCategoryByIdApi } from "@/api/categories/categories.api";
+import { getCategoryByIdApi, getRootCategoriesApi, createSubcategoryApi, updateSubcategoryApi, Category } from "@/api/categories/categories.api";
 import { toast } from "sonner";
 import { useCategoryFormStore } from "@/store";
 import http from "@/utils/http";
@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Upload,
   FolderTree,
   FileText,
@@ -23,6 +30,7 @@ import {
   Link2,
   Type,
   AlignLeft,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +39,8 @@ export interface CategoryFormData {
   name: string;
   slug: string;
   description: string;
+  parent: string | null;
+  type: "mega" | "normal";
   image: string;
   imageFile: File | null;
   isActive: boolean;
@@ -59,12 +69,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   const isSubmittingRef = useRef(false);
   const [internalIsLoading, setInternalIsLoading] = useState(false);
   const [isFetchingCategory, setIsFetchingCategory] = useState(mode === "edit");
+  const [parentCategories, setParentCategories] = useState<Category[]>([]);
+  const [isLoadingParents, setIsLoadingParents] = useState(false);
 
   // Get store state and actions
   const {
     name,
     slug,
     description,
+    parent,
+    type,
     image,
     imageFile,
     isActive,
@@ -73,6 +87,8 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     setName,
     setSlug,
     setDescription,
+    setParent,
+    setType,
     setImage,
     setImageFile,
     setIsActive,
@@ -87,6 +103,28 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
   // Use external loading state if provided, otherwise use internal
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
+
+  // Fetch parent categories for dropdown
+  useEffect(() => {
+    const fetchParentCategories = async () => {
+      try {
+        setIsLoadingParents(true);
+        const rootCategories = await getRootCategoriesApi();
+        // Filter out current category if editing (to prevent self-parenting)
+        const filtered = mode === "edit" && categoryId
+          ? rootCategories.filter((cat: Category) => cat._id !== categoryId)
+          : rootCategories;
+        setParentCategories(filtered);
+      } catch (error: any) {
+        console.error("[CategoryForm] Failed to fetch parent categories:", error);
+        // Don't show error toast, just log it - form can still work without parent options
+      } finally {
+        setIsLoadingParents(false);
+      }
+    };
+
+    fetchParentCategories();
+  }, [mode, categoryId]);
 
   // Fetch category data for edit mode
   useEffect(() => {
@@ -152,6 +190,8 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       name,
       slug,
       description,
+      parent,
+      type,
       image,
       imageFile,
       isActive,
@@ -168,14 +208,20 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     formData.append("name", data.name);
     if (data.slug) formData.append("slug", data.slug);
     if (data.description) formData.append("description", data.description);
+    
+    // Parent and Type
+    if (data.parent) {
+      formData.append("parent", data.parent);
+    }
+    formData.append("type", data.type);
 
-    // Image - only append if it's a new file
+    // Image - only append if it's a new file (API expects "thumbnail" for single image)
     if (data.imageFile) {
-      formData.append("image", data.imageFile);
+      formData.append("thumbnail", data.imageFile);
     }
 
-    // Status
-    formData.append("isActive", data.isActive.toString());
+    // Status (API uses "active" not "isActive")
+    formData.append("active", data.isActive.toString());
 
     // SEO
     if (data.metaTitle) formData.append("metaTitle", data.metaTitle);
@@ -236,20 +282,28 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       // Build FormData
       const formData = buildFormData(data);
 
-      // Call appropriate API based on mode
+      // Call appropriate API based on mode and parent selection
       if (mode === "create") {
-        // POST for create
-        await http.post(API_RESOURCES.CATEGORIES, formData, {
-          timeout: 120000,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        toast.success("Category created successfully!", {
-          id: loadingToastId,
-          description: `${data.name} has been added.`,
-        });
+        if (data.parent) {
+          // Create subcategory
+          await createSubcategoryApi(data.parent, formData);
+          toast.success("Subcategory created successfully!", {
+            id: loadingToastId,
+            description: `${data.name} has been added as a subcategory.`,
+          });
+        } else {
+          // Create root category
+          await http.post(API_RESOURCES.CATEGORIES, formData, {
+            timeout: 120000,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+          toast.success("Category created successfully!", {
+            id: loadingToastId,
+            description: `${data.name} has been added.`,
+          });
+        }
 
         // Reset store after successful creation
         resetCategoryForm();
@@ -259,17 +313,25 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           router.push("/en/categories");
         }, 1500);
       } else {
-        // PATCH for edit
+        // Edit mode
         if (!categoryId) {
           throw new Error("Category ID is required for editing");
         }
 
-        await http.patch(`${API_RESOURCES.CATEGORIES}/${categoryId}`, formData, {
-          timeout: 120000,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        // Determine if it's a subcategory (has parent) or root category
+        // Use appropriate endpoint based on whether parent exists
+        if (data.parent) {
+          // Update subcategory (or category with parent)
+          await updateSubcategoryApi(categoryId, formData);
+        } else {
+          // Update root category (or remove parent from subcategory)
+          await http.patch(`${API_RESOURCES.CATEGORIES}/${categoryId}`, formData, {
+            timeout: 120000,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        }
 
         toast.success("Category updated successfully!", {
           id: loadingToastId,
@@ -347,13 +409,17 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       const formData = buildFormData(draftData);
 
       if (mode === "create") {
-        // POST for create draft
-        await http.post(API_RESOURCES.CATEGORIES, formData, {
-          timeout: 120000,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        // Create draft - check if subcategory or root
+        if (data.parent) {
+          await createSubcategoryApi(data.parent, formData);
+        } else {
+          await http.post(API_RESOURCES.CATEGORIES, formData, {
+            timeout: 120000,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        }
 
         toast.success("Draft saved!", {
           id: loadingToastId,
@@ -368,17 +434,22 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           router.push("/en/categories");
         }, 1500);
       } else {
-        // PATCH for update draft
+        // Update draft
         if (!categoryId) {
           throw new Error("Category ID is required for editing");
         }
 
-        await http.patch(`${API_RESOURCES.CATEGORIES}/${categoryId}`, formData, {
-          timeout: 120000,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        // Use appropriate endpoint based on parent
+        if (data.parent) {
+          await updateSubcategoryApi(categoryId, formData);
+        } else {
+          await http.patch(`${API_RESOURCES.CATEGORIES}/${categoryId}`, formData, {
+            timeout: 120000,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        }
 
         toast.success("Draft saved!", {
           id: loadingToastId,
@@ -492,6 +563,63 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                 />
                 <p className="text-xs text-muted-foreground">
                   Auto-generated from name. You can edit it manually.
+                </p>
+              </div>
+
+              {/* Parent Category */}
+              <div className="space-y-2">
+                <Label htmlFor="parent" className="text-default-600">
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-4 w-4" />
+                    Parent Category
+                  </div>
+                </Label>
+                <Select
+                  value={parent || ""}
+                  onValueChange={(value) => setParent(value === "none" ? null : value)}
+                  disabled={isLoadingParents}
+                >
+                  <SelectTrigger size="lg">
+                    <SelectValue placeholder={isLoadingParents ? "Loading categories..." : "Select parent category (optional)"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Root Category)</SelectItem>
+                    {parentCategories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {parent 
+                    ? "This will be created as a subcategory" 
+                    : "Leave empty to create a root category"}
+                </p>
+              </div>
+
+              {/* Category Type */}
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-default-600">
+                  <div className="flex items-center gap-2">
+                    <FolderTree className="h-4 w-4" />
+                    Category Type
+                  </div>
+                </Label>
+                <Select
+                  value={type}
+                  onValueChange={(value: "mega" | "normal") => setType(value)}
+                >
+                  <SelectTrigger size="lg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="mega">Mega Menu</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Mega menu categories are ideal for large dropdown menus with multiple subcategories
                 </p>
               </div>
 

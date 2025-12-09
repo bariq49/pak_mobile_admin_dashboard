@@ -118,14 +118,14 @@ interface ProductFormStoreState {
   brand: string;
   model: string;
   sku: string;
-  category: string;
+  category: string; // Parent category ID
+  subCategory: string; // Subcategory ID
   tags: string[];
   condition: string;
   
   // Pricing
   price: string;
   salePrice: string;
-  costPrice: string;
   tax: string;
   quantity: string; // Main product quantity - separate from variant stock
   
@@ -139,20 +139,8 @@ interface ProductFormStoreState {
   // Variants
   variants: Variant[];
   
-  // Technical Specifications
-  displaySize: string;
-  displayType: string;
-  processor: string;
-  rearCamera: string;
-  frontCamera: string;
-  battery: string;
-  fastCharging: string;
-  os: string;
-  network: string;
-  connectivity: string;
-  simSupport: string;
-  dimensions: string;
-  weight: string;
+  // Additional Information (Dynamic Key-Value Pairs)
+  additionalInfo: Array<{ key: string; value: string }>;
   
   // Additional
   description: string;
@@ -168,13 +156,13 @@ interface ProductFormStoreState {
   setModel: (value: string) => void;
   setSku: (value: string) => void;
   setCategory: (value: string) => void;
+  setSubCategory: (value: string) => void;
   setTags: (value: string[]) => void;
   setCondition: (value: string) => void;
   
   // Actions - Pricing
   setPrice: (value: string) => void;
   setSalePrice: (value: string) => void;
-  setCostPrice: (value: string) => void;
   setTax: (value: string) => void;
   setQuantity: (value: string) => void;
   
@@ -191,20 +179,11 @@ interface ProductFormStoreState {
   removeVariant: (id: string) => void;
   updateVariant: (id: string, updates: Partial<Variant>) => void;
   
-  // Actions - Technical Specifications
-  setDisplaySize: (value: string) => void;
-  setDisplayType: (value: string) => void;
-  setProcessor: (value: string) => void;
-  setRearCamera: (value: string) => void;
-  setFrontCamera: (value: string) => void;
-  setBattery: (value: string) => void;
-  setFastCharging: (value: string) => void;
-  setOs: (value: string) => void;
-  setNetwork: (value: string) => void;
-  setConnectivity: (value: string) => void;
-  setSimSupport: (value: string) => void;
-  setDimensions: (value: string) => void;
-  setWeight: (value: string) => void;
+  // Actions - Additional Information
+  setAdditionalInfo: (value: Array<{ key: string; value: string }>) => void;
+  addAdditionalInfoField: () => void;
+  updateAdditionalInfoField: (index: number, field: { key?: string; value?: string }) => void;
+  removeAdditionalInfoField: (index: number) => void;
   
   // Actions - Additional
   setDescription: (value: string) => void;
@@ -228,13 +207,13 @@ const initialProductFormState = {
   model: "",
   sku: "",
   category: "",
+  subCategory: "",
   tags: [] as string[],
   condition: "new",
   
   // Pricing
   price: "",
   salePrice: "",
-  costPrice: "",
   tax: "",
   quantity: "0",
   
@@ -248,20 +227,8 @@ const initialProductFormState = {
   // Variants
   variants: [] as Variant[],
   
-  // Technical Specifications
-  displaySize: "",
-  displayType: "",
-  processor: "",
-  rearCamera: "",
-  frontCamera: "",
-  battery: "",
-  fastCharging: "",
-  os: "",
-  network: "",
-  connectivity: "",
-  simSupport: "",
-  dimensions: "",
-  weight: "",
+  // Additional Information (Dynamic Key-Value Pairs)
+  additionalInfo: [] as Array<{ key: string; value: string }>,
   
   // Additional
   description: "",
@@ -294,7 +261,12 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
   },
   setCategory: (value: string) => {
     // console.log("[ProductStore] setCategory:", value);
-    set({ category: value });
+    // When category changes, clear subCategory
+    set({ category: value, subCategory: "" });
+  },
+  setSubCategory: (value: string) => {
+    // console.log("[ProductStore] setSubCategory:", value);
+    set({ subCategory: value });
   },
   setTags: (value: string[]) => {
     // console.log("[ProductStore] setTags:", value);
@@ -313,10 +285,6 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
   setSalePrice: (value: string) => {
     // console.log("[ProductStore] setSalePrice:", value);
     set({ salePrice: value });
-  },
-  setCostPrice: (value: string) => {
-    // console.log("[ProductStore] setCostPrice:", value);
-    set({ costPrice: value });
   },
   setTax: (value: string) => {
     // console.log("[ProductStore] setTax:", value);
@@ -386,58 +354,30 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
     });
   },
   
-  // Technical Specifications Actions
-  setDisplaySize: (value: string) => {
-    console.log("[ProductStore] setDisplaySize:", value);
-    set({ displaySize: value });
+  // Actions - Additional Information
+  setAdditionalInfo: (value: Array<{ key: string; value: string }>) => {
+    set({ additionalInfo: value });
   },
-  setDisplayType: (value: string) => {
-    console.log("[ProductStore] setDisplayType:", value);
-    set({ displayType: value });
+  addAdditionalInfoField: () => {
+    const current = get().additionalInfo;
+    set({ additionalInfo: [...current, { key: "", value: "" }] });
   },
-  setProcessor: (value: string) => {
-    console.log("[ProductStore] setProcessor:", value);
-    set({ processor: value });
+  updateAdditionalInfoField: (index: number, field: { key?: string; value?: string }) => {
+    const current = get().additionalInfo;
+    const updated = [...current];
+    if (updated[index]) {
+      updated[index] = {
+        ...updated[index],
+        ...(field.key !== undefined && { key: field.key }),
+        ...(field.value !== undefined && { value: field.value }),
+      };
+      set({ additionalInfo: updated });
+    }
   },
-  setRearCamera: (value: string) => {
-    console.log("[ProductStore] setRearCamera:", value);
-    set({ rearCamera: value });
-  },
-  setFrontCamera: (value: string) => {
-    console.log("[ProductStore] setFrontCamera:", value);
-    set({ frontCamera: value });
-  },
-  setBattery: (value: string) => {
-    console.log("[ProductStore] setBattery:", value);
-    set({ battery: value });
-  },
-  setFastCharging: (value: string) => {
-    console.log("[ProductStore] setFastCharging:", value);
-    set({ fastCharging: value });
-  },
-  setOs: (value: string) => {
-    console.log("[ProductStore] setOs:", value);
-    set({ os: value });
-  },
-  setNetwork: (value: string) => {
-    console.log("[ProductStore] setNetwork:", value);
-    set({ network: value });
-  },
-  setConnectivity: (value: string) => {
-    console.log("[ProductStore] setConnectivity:", value);
-    set({ connectivity: value });
-  },
-  setSimSupport: (value: string) => {
-    console.log("[ProductStore] setSimSupport:", value);
-    set({ simSupport: value });
-  },
-  setDimensions: (value: string) => {
-    console.log("[ProductStore] setDimensions:", value);
-    set({ dimensions: value });
-  },
-  setWeight: (value: string) => {
-    console.log("[ProductStore] setWeight:", value);
-    set({ weight: value });
+  removeAdditionalInfoField: (index: number) => {
+    const current = get().additionalInfo;
+    const updated = current.filter((_, i) => i !== index);
+    set({ additionalInfo: updated });
   },
   
   // Additional Actions
@@ -506,13 +446,15 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
       category: typeof product.category === "string" 
         ? product.category 
         : product.category?._id || product.category?.id || "",
+      subCategory: typeof product.subCategory === "string"
+        ? product.subCategory
+        : product.subCategory?._id || product.subCategory?.id || "",
       condition: product.condition || "new",
       tags: Array.isArray(product.tags) ? product.tags.map((t: any) => typeof t === 'string' ? t : t.name || t) : [],
       
       // Pricing - handle both salePrice and sale_price
       price: product.price !== undefined ? product.price.toString() : "0",
       salePrice: (product.salePrice !== undefined ? product.salePrice : product.sale_price !== undefined ? product.sale_price : 0).toString(),
-      costPrice: product.costPrice !== undefined ? product.costPrice.toString() : "0",
       tax: product.tax !== undefined ? product.tax.toString() : "0",
       quantity: product.quantity !== undefined ? product.quantity.toString() : "0",
       
@@ -539,20 +481,49 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
           }))
         : [{ id: `variant-${Date.now()}`, storage: "", ram: "", color: "", bundle: "", warranty: "", price: "", stock: "", sku: "", image: "" }],
       
-      // Technical Specifications - API uses technicalSpecifications, not specifications
-      displaySize: product.technicalSpecifications?.displaySize || "",
-      displayType: product.technicalSpecifications?.displayType || "",
-      processor: product.technicalSpecifications?.processor || "",
-      rearCamera: product.technicalSpecifications?.rearCamera || "",
-      frontCamera: product.technicalSpecifications?.frontCamera || "",
-      battery: product.technicalSpecifications?.battery || "",
-      fastCharging: product.technicalSpecifications?.fastCharging || "",
-      os: product.technicalSpecifications?.os || "",
-      network: product.technicalSpecifications?.network || "",
-      connectivity: product.technicalSpecifications?.connectivity || "",
-      simSupport: product.technicalSpecifications?.simSupport || "",
-      dimensions: product.technicalSpecifications?.dimensions || "",
-      weight: product.technicalSpecifications?.weight || "",
+      // Additional Information - Convert from API format (object or array)
+      additionalInfo: (() => {
+        // API might send additional_info as object {key: value} or array [{key, value}]
+        if (product.additional_info) {
+          if (Array.isArray(product.additional_info)) {
+            // Already in array format
+            return product.additional_info.map((item: any) => ({
+              key: typeof item === 'object' ? (item.key || Object.keys(item)[0] || "") : "",
+              value: typeof item === 'object' ? (item.value || Object.values(item)[0] || "") : String(item),
+            }));
+          } else if (typeof product.additional_info === 'object') {
+            // Convert object to array of {key, value}
+            return Object.entries(product.additional_info).map(([key, value]) => ({
+              key,
+              value: String(value || ""),
+            }));
+          }
+        }
+        // Also check for additionalInfo (camelCase) or specifications (legacy)
+        if (product.additionalInfo) {
+          if (Array.isArray(product.additionalInfo)) {
+            return product.additionalInfo.map((item: any) => ({
+              key: typeof item === 'object' ? (item.key || Object.keys(item)[0] || "") : "",
+              value: typeof item === 'object' ? (item.value || Object.values(item)[0] || "") : String(item),
+            }));
+          } else if (typeof product.additionalInfo === 'object') {
+            return Object.entries(product.additionalInfo).map(([key, value]) => ({
+              key,
+              value: String(value || ""),
+            }));
+          }
+        }
+        // Legacy: Convert technicalSpecifications to additionalInfo if present
+        if (product.technicalSpecifications && typeof product.technicalSpecifications === 'object') {
+          return Object.entries(product.technicalSpecifications)
+            .filter(([_, value]) => value !== undefined && value !== null && value !== "")
+            .map(([key, value]) => ({
+              key,
+              value: String(value),
+            }));
+        }
+        return [];
+      })(),
       
       // Additional - API uses whatsInTheBox (capital T), not whatsInBox
       description: product.description || "",
@@ -574,6 +545,8 @@ interface CategoryFormStoreState {
   name: string;
   slug: string;
   description: string;
+  parent: string | null; // Parent category _id (null for root categories)
+  type: "mega" | "normal"; // Category type
   
   // Media
   image: string;
@@ -590,6 +563,8 @@ interface CategoryFormStoreState {
   setName: (value: string) => void;
   setSlug: (value: string) => void;
   setDescription: (value: string) => void;
+  setParent: (value: string | null) => void;
+  setType: (value: "mega" | "normal") => void;
   
   // Actions - Media
   setImage: (value: string) => void;
@@ -614,6 +589,8 @@ const initialCategoryFormState = {
   name: "",
   slug: "",
   description: "",
+  parent: null as string | null,
+  type: "normal" as "mega" | "normal",
   
   // Media
   image: "",
@@ -647,6 +624,12 @@ export const useCategoryFormStore = create<CategoryFormStoreState>()((set, get) 
   },
   setDescription: (value: string) => {
     set({ description: value });
+  },
+  setParent: (value: string | null) => {
+    set({ parent: value });
+  },
+  setType: (value: "mega" | "normal") => {
+    set({ type: value });
   },
   
   // Media Actions
@@ -682,17 +665,31 @@ export const useCategoryFormStore = create<CategoryFormStoreState>()((set, get) 
     }
 
     let imageUrl = "";
-    if (category.image) {
+    // Handle images array from API (look for thumbnail type)
+    if (category.images && Array.isArray(category.images)) {
+      const thumbnailImage = category.images.find((img: any) => img.type === 'thumbnail');
+      if (thumbnailImage) {
+        imageUrl = thumbnailImage.url || "";
+      }
+    } else if (category.image) {
       imageUrl = typeof category.image === 'string' ? category.image : category.image.url || category.image.original || "";
     }
 
-    const newState = {
+    // Handle parent - can be ObjectId string or object with _id
+    let parentId: string | null = null;
+    if (category.parent) {
+      parentId = typeof category.parent === 'string' ? category.parent : category.parent._id || null;
+    }
+
+    const newState: Partial<CategoryFormStoreState> = {
       name: category.name || "",
       slug: category.slug || "",
       description: category.description || "",
+      parent: parentId,
+      type: (category.type === "mega" ? "mega" : "normal") as "mega" | "normal",
       image: imageUrl,
       imageFile: null,
-      isActive: category.isActive !== undefined ? category.isActive : (category.is_active !== undefined ? category.is_active : true),
+      isActive: category.active !== undefined ? category.active : (category.isActive !== undefined ? category.isActive : (category.is_active !== undefined ? category.is_active : true)),
       metaTitle: category.metaTitle || category.meta_title || "",
       metaDescription: category.metaDescription || category.meta_description || "",
     };

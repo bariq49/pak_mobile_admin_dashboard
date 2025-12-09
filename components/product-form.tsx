@@ -34,11 +34,6 @@ import {
   Plus,
   Trash2,
   Smartphone,
-  Cpu,
-  Monitor,
-  Camera,
-  Battery,
-  Wifi,
   HardDrive,
   MemoryStick,
   Palette,
@@ -74,11 +69,11 @@ export interface ProductFormData {
   model: string;
   sku: string;
   category: string;
+  subCategory: string;
   tags: string[];
   condition: string;
   price: number;
   salePrice: number;
-  costPrice: number;
   tax: number;
   quantity: number;
   featuredImage: string;
@@ -87,19 +82,7 @@ export interface ProductFormData {
   galleryImageFiles: File[];
   videoUrl: string;
   variants: Variant[];
-  displaySize: string;
-  displayType: string;
-  processor: string;
-  rearCamera: string;
-  frontCamera: string;
-  battery: string;
-  fastCharging: string;
-  os: string;
-  network: string;
-  connectivity: string;
-  simSupport: string;
-  dimensions: string;
-  weight: string;
+  additionalInfo: Array<{ key: string; value: string }>;
   description: string;
   whatsInBox: string;
   status: "draft" | "published" | "archived";
@@ -183,45 +166,6 @@ const warrantyOptions = [
   { value: "no-warranty", label: "No Warranty" },
 ];
 
-// Display type options
-const displayTypeOptions = [
-  "AMOLED",
-  "Super AMOLED",
-  "Dynamic AMOLED",
-  "OLED",
-  "IPS LCD",
-  "TFT LCD",
-  "Retina",
-  "Super Retina XDR",
-  "LTPO AMOLED",
-];
-
-// OS options
-const osOptions = [
-  "Android 14",
-  "Android 13",
-  "Android 12",
-  "iOS 17",
-  "iOS 16",
-  "HarmonyOS",
-  "MIUI 14",
-  "ColorOS 14",
-  "OxygenOS 14",
-  "One UI 6",
-];
-
-// Network options
-const networkOptions = ["5G", "4G LTE", "4G", "3G"];
-
-// SIM support options
-const simSupportOptions = [
-  "Dual SIM",
-  "Single SIM",
-  "Dual SIM + eSIM",
-  "eSIM Only",
-  "Dual Nano SIM",
-];
-
 const ProductForm: React.FC<ProductFormProps> = ({
   mode,
   productId,
@@ -250,13 +194,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
     model, setModel,
     sku, setSku,
     category, setCategory,
+    subCategory, setSubCategory,
     tags, setTags,
     condition, setCondition,
     
     // Pricing
     price, setPrice,
     salePrice, setSalePrice,
-    costPrice, setCostPrice,
     tax, setTax,
     quantity, setQuantity, // Main product quantity - separate from variant stock
     
@@ -270,20 +214,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
     // Variants
     variants, setVariants, addVariant, removeVariant, updateVariant,
     
-    // Technical Specifications
-    displaySize, setDisplaySize,
-    displayType, setDisplayType,
-    processor, setProcessor,
-    rearCamera, setRearCamera,
-    frontCamera, setFrontCamera,
-    battery, setBattery,
-    fastCharging, setFastCharging,
-    os, setOs,
-    network, setNetwork,
-    connectivity, setConnectivity,
-    simSupport, setSimSupport,
-    dimensions, setDimensions,
-    weight, setWeight,
+    // Additional Information
+    additionalInfo, setAdditionalInfo, addAdditionalInfoField, updateAdditionalInfoField, removeAdditionalInfoField,
     
     // Additional
     description, setDescription,
@@ -311,18 +243,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
   //   });
   // }, [name, brand, model, price, quantity, category, variants]);
 
-  // Categories state (fetched from API)
+  // Categories state (fetched from API with subcategories)
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  // Fetch categories on mount
+  // Fetch categories with subcategories on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setCategoriesLoading(true);
         setCategoriesError(null);
-        const response = await getCategoriesApi(1, 100);
+        // Fetch all categories (with children/subcategories)
+        const response = await getCategoriesApi(1, 1000); // Large limit to get all
         setCategories(response.data.categories);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -499,11 +432,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       model,
       sku,
       category,
+      subCategory,
       tags,
       condition,
       price: parseFloat(price) || 0,
       salePrice: parseFloat(salePrice) || 0,
-      costPrice: parseFloat(costPrice) || 0,
       tax: parseFloat(tax) || 0,
       quantity: parseInt(quantity) || 0, // Main product quantity, separate from variant stock
       featuredImage,
@@ -516,19 +449,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         // Include the file reference for upload
         imageFile: variantImageFiles.current[v.id] || null,
       })) as Variant[],
-      displaySize,
-      displayType,
-      processor,
-      rearCamera,
-      frontCamera,
-      battery,
-      fastCharging,
-      os,
-      network,
-      connectivity,
-      simSupport,
-      dimensions,
-      weight,
+      additionalInfo,
       description,
       whatsInBox,
       status,
@@ -592,6 +513,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     formData.append("model", data.model);
     if (data.sku) formData.append("sku", data.sku);
     formData.append("category", data.category);
+    if (data.subCategory) formData.append("subCategory", data.subCategory);
     formData.append("condition", data.condition || "new");
 
     // Tags (as JSON array)
@@ -602,7 +524,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     // Pricing
     formData.append("price", data.price.toString());
     if (data.salePrice) formData.append("salePrice", data.salePrice.toString());
-    if (data.costPrice) formData.append("costPrice", data.costPrice.toString());
     if (data.tax) formData.append("tax", data.tax.toString());
     
     // Stock Quantity - main product quantity (NOT derived from variants)
@@ -642,27 +563,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
       formData.append("variants", JSON.stringify(validVariants));
     }
 
-    // Technical Specifications - send as JSON object
-    const specifications = {
-      displaySize: data.displaySize || undefined,
-      displayType: data.displayType || undefined,
-      processor: data.processor || undefined,
-      rearCamera: data.rearCamera || undefined,
-      frontCamera: data.frontCamera || undefined,
-      battery: data.battery || undefined,
-      fastCharging: data.fastCharging || undefined,
-      os: data.os || undefined,
-      network: data.network || undefined,
-      connectivity: data.connectivity || undefined,
-      simSupport: data.simSupport || undefined,
-      dimensions: data.dimensions || undefined,
-      weight: data.weight || undefined,
-    };
-
-    // Only add specs if at least one field has value
-    const hasSpecs = Object.values(specifications).some(v => v);
-    if (hasSpecs) {
-      formData.append("specifications", JSON.stringify(specifications));
+    // Additional Information - Convert array to object {key: value}
+    if (data.additionalInfo && data.additionalInfo.length > 0) {
+      const additionalInfoObject: Record<string, string> = {};
+      data.additionalInfo.forEach((item) => {
+        if (item.key && item.key.trim()) {
+          additionalInfoObject[item.key.trim()] = item.value || "";
+        }
+      });
+      
+      // Only append if there's at least one valid key-value pair
+      if (Object.keys(additionalInfoObject).length > 0) {
+        formData.append("additional_info", JSON.stringify(additionalInfoObject));
+      }
     }
 
     // Description and What's in the Box
@@ -990,18 +903,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <Label htmlFor="brand" className="text-default-600">
                     Brand <span className="text-destructive">*</span>
                   </Label>
-                  <Select value={brand} onValueChange={setBrand}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Brand" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {brandOptions.map((b) => (
-                        <SelectItem key={b} value={b.toLowerCase()}>
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="brand"
+                    placeholder="e.g., Samsung, Apple, Xiaomi"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
+                    size="lg"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="model" className="text-default-600">
@@ -1039,11 +947,31 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category" className="text-default-600">
-                    Category <span className="text-destructive">*</span>
+                    Category & Subcategory <span className="text-destructive">*</span>
                   </Label>
                   <Select 
-                    value={category} 
-                    onValueChange={setCategory}
+                    value={subCategory || category || ""} 
+                    onValueChange={(value) => {
+                      // Find the selected item from all categories and subcategories
+                      const allCategories = categories.flatMap(cat => [
+                        { ...cat, isRoot: true },
+                        ...(cat.children || []).map((child: Category) => ({ ...child, isRoot: false }))
+                      ]);
+                      const selected = allCategories.find(c => c._id === value);
+                      
+                      if (selected && !selected.isRoot && selected.parent) {
+                        // It's a subcategory - set both parent and subcategory
+                        const parentId = typeof selected.parent === 'string' 
+                          ? selected.parent 
+                          : (selected.parent as any)?._id || "";
+                        setCategory(parentId);
+                        setSubCategory(value);
+                      } else {
+                        // It's a root category - set category and clear subcategory
+                        setCategory(value);
+                        setSubCategory("");
+                      }
+                    }}
                     disabled={categoriesLoading}
                   >
                     <SelectTrigger>
@@ -1053,10 +981,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           Loading categories...
                         </div>
                       ) : (
-                        <SelectValue placeholder="Select Category" />
+                        <SelectValue placeholder="Select Category or Subcategory" />
                       )}
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[400px] overflow-y-auto">
                       {categoriesError ? (
                         <div className="px-2 py-4 text-center text-sm text-destructive">
                           {categoriesError}
@@ -1066,14 +994,54 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           No categories found
                         </div>
                       ) : (
-                        categories.map((cat) => (
-                          <SelectItem key={cat._id} value={cat._id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))
+                        <>
+                          {/* Root Categories (no parent) */}
+                          {categories
+                            .filter(cat => !cat.parent)
+                            .map((cat) => (
+                              <React.Fragment key={cat._id}>
+                                <SelectItem 
+                                  value={cat._id} 
+                                  className="font-semibold"
+                                >
+                                  {cat.name}
+                                </SelectItem>
+                                {/* Subcategories (children) - indented */}
+                                {cat.children && Array.isArray(cat.children) && cat.children.length > 0 && (
+                                  <>
+                                    {cat.children.map((subCat: Category) => (
+                                      <SelectItem 
+                                        key={subCat._id} 
+                                        value={subCat._id}
+                                        className="pl-6 text-sm font-normal"
+                                      >
+                                        └─ {subCat.name}
+                                      </SelectItem>
+                                    ))}
+                                  </>
+                                )}
+                              </React.Fragment>
+                            ))}
+                        </>
                       )}
                     </SelectContent>
                   </Select>
+                  {subCategory && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Subcategory: <span className="font-medium">
+                        {categories
+                          .flatMap(cat => cat.children || [])
+                          .find(sub => sub._id === subCategory)?.name || "Unknown"}
+                      </span>
+                    </p>
+                  )}
+                  {category && !subCategory && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Category: <span className="font-medium">
+                        {categories.find(cat => cat._id === category)?.name || "Unknown"}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1189,28 +1157,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Cost Price */}
-                <div className="space-y-2">
-                  <Label htmlFor="costPrice" className="text-default-600">
-                    Cost Price (Internal)
-                  </Label>
-                  <InputGroup>
-                    <InputGroupText>PKR</InputGroupText>
-                    <Input
-                      id="costPrice"
-                      type="number"
-                      placeholder="0"
-                      value={costPrice}
-                      onChange={(e) => setCostPrice(e.target.value)}
-                      className="rounded-l-none"
-                      size="lg"
-                    />
-                  </InputGroup>
-                  <p className="text-xs text-muted-foreground">
-                    For profit calculation only - not visible to customers
-                  </p>
-              </div>
-
                 {/* Tax */}
                 <div className="space-y-2">
                   <Label htmlFor="tax" className="text-default-600">
@@ -1713,228 +1659,83 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </CardContent>
           </Card>
 
-          {/* Technical Specifications Card */}
+          {/* Additional Information Card - Dynamic Key-Value Pairs */}
           <Card>
             <CardHeader className="border-b border-border pb-4">
-              <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <Cpu className="h-5 w-5 text-primary" />
-                Technical Specifications
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-medium flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Additional Information
+                </CardTitle>
+                <Button 
+                  type="button" 
+                  onClick={addAdditionalInfoField} 
+                  size="sm"
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Field
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="pt-6 space-y-5">
-              {/* Display Section */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-default-700 flex items-center gap-2">
-                  <Monitor className="h-4 w-4 text-primary" />
-                  Display
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-                  <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Display Size
-                    </Label>
-                    <Input
-                      placeholder='e.g., 6.8"'
-                      value={displaySize}
-                      onChange={(e) => setDisplaySize(e.target.value)}
-                      size="lg"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Display Type
-                    </Label>
-                    <Select value={displayType} onValueChange={setDisplayType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Display Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {displayTypeOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt.toLowerCase()}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <CardContent className="pt-6 space-y-4">
+              {additionalInfo.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No additional information added yet.</p>
+                  <p className="text-xs mt-1">Click "Add Field" to add key-value pairs.</p>
                 </div>
-              </div>
-
-              {/* Processor */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-default-700 flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-primary" />
-                  Processor
-                </h4>
-                <div className="pl-6">
-                  <Input
-                    placeholder="e.g., Snapdragon 8 Gen 3 / Apple A17 Pro"
-                    value={processor}
-                    onChange={(e) => setProcessor(e.target.value)}
-                    size="lg"
-                  />
+              ) : (
+                <div className="space-y-4">
+                  {additionalInfo.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex gap-3 items-start p-4 border border-default-200 rounded-lg bg-default-50/50"
+                    >
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-default-600 text-sm">
+                            Key
+                          </Label>
+                          <Input
+                            placeholder="e.g., Display Size, Processor, RAM"
+                            value={item.key}
+                            onChange={(e) =>
+                              updateAdditionalInfoField(index, { key: e.target.value })
+                            }
+                            size="lg"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-default-600 text-sm">
+                            Value
+                          </Label>
+                          <Input
+                            placeholder="e.g., 6.8 inches, Snapdragon 8 Gen 3, 12GB"
+                            value={item.value}
+                            onChange={(e) =>
+                              updateAdditionalInfoField(index, { value: e.target.value })
+                            }
+                            size="lg"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 mt-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => removeAdditionalInfoField(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              {/* Camera Section */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-default-700 flex items-center gap-2">
-                  <Camera className="h-4 w-4 text-primary" />
-                  Camera
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-              <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Rear Camera
-                </Label>
-                  <Input
-                      placeholder="e.g., 200MP + 12MP + 50MP + 10MP"
-                      value={rearCamera}
-                      onChange={(e) => setRearCamera(e.target.value)}
-                    size="lg"
-                  />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Front Camera
-                    </Label>
-                    <Input
-                      placeholder="e.g., 12MP"
-                      value={frontCamera}
-                      onChange={(e) => setFrontCamera(e.target.value)}
-                      size="lg"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Battery Section */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-default-700 flex items-center gap-2">
-                  <Battery className="h-4 w-4 text-primary" />
-                  Battery & Charging
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-              <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Battery Capacity
-                </Label>
-                    <Input
-                      placeholder="e.g., 5000 mAh"
-                      value={battery}
-                      onChange={(e) => setBattery(e.target.value)}
-                      size="lg"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Fast Charging
-                    </Label>
-                    <Input
-                      placeholder="e.g., 45W Wired, 15W Wireless"
-                      value={fastCharging}
-                      onChange={(e) => setFastCharging(e.target.value)}
-                      size="lg"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* OS & Network */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-default-700 flex items-center gap-2">
-                  <Wifi className="h-4 w-4 text-primary" />
-                  Software & Network
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-              <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">
-                      Operating System
-                    </Label>
-                    <Select value={os} onValueChange={setOs}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select OS" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {osOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt.toLowerCase()}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-default-600 text-sm">Network</Label>
-                    <Select value={network} onValueChange={setNetwork}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Network" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {networkOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt.toLowerCase()}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Connectivity & SIM */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-                <div className="space-y-2">
-                  <Label className="text-default-600 text-sm">
-                    Connectivity (Bluetooth / NFC)
-                </Label>
-                <Input
-                    placeholder="e.g., Bluetooth 5.3, NFC"
-                    value={connectivity}
-                    onChange={(e) => setConnectivity(e.target.value)}
-                  size="lg"
-                />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-default-600 text-sm">SIM Support</Label>
-                  <Select value={simSupport} onValueChange={setSimSupport}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select SIM Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {simSupportOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt.toLowerCase()}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Dimensions & Weight */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-              <div className="space-y-2">
-                  <Label className="text-default-600 text-sm">
-                    Dimensions (L x W x H)
-                </Label>
-                  <Input
-                    placeholder="e.g., 162.3 x 79 x 8.6 mm"
-                    value={dimensions}
-                    onChange={(e) => setDimensions(e.target.value)}
-                    size="lg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-default-600 text-sm">Weight</Label>
-                  <Input
-                    placeholder="e.g., 233g"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    size="lg"
-                  />
-                </div>
-              </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-4">
+                Add custom technical specifications and additional product information as key-value pairs.
+              </p>
             </CardContent>
           </Card>
 
