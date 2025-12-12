@@ -4,6 +4,7 @@ import {
   Graph,
   Cart,
   ClipBoard,
+  Flag,
 } from "@/components/svg";
 
 
@@ -101,6 +102,24 @@ export const menusConfig = {
           {
             title: "Create",
             href: "/products/create",
+          }
+        ]
+      },
+      {
+        title: "Deals",
+        icon: Flag,
+        child: [
+          {
+            title: "List",
+            href: "/deals",
+          },
+          {
+            title: "Edit",
+            href: "/deals/edit",
+          },
+          {
+            title: "Create",
+            href: "/deals/create",
           }
         ]
       },

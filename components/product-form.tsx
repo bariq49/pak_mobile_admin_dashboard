@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCategoriesApi, Category } from "@/api/categories/categories.api";
-import { getProductByIdApi } from "@/api/product/products.api";
+import { getProductBySlugApi } from "@/api/product/products.api";
 import { toast } from "sonner";
 import { useProductFormStore } from "@/store";
 import http from "@/utils/http";
@@ -74,6 +74,9 @@ export interface ProductFormData {
   condition: string;
   price: number;
   salePrice: number;
+  onSale: boolean;
+  saleStart: string;
+  saleEnd: string;
   tax: number;
   quantity: number;
   featuredImage: string;
@@ -93,7 +96,8 @@ export interface ProductFormData {
 
 interface ProductFormProps {
   mode: "create" | "edit";
-  productId?: string; // Required for edit mode - used to fetch product data
+  productSlug?: string; // Required for edit mode - used to fetch product data by slug
+  productId?: string; // Optional - ID extracted from fetched product, used for updates
   onSubmit?: (data: ProductFormData) => void | Promise<void>; // Optional - if not provided, handles submission internally
   onSaveDraft?: (data: ProductFormData) => void | Promise<void>; // Optional - if not provided, handles submission internally
   onCancel?: () => void;
@@ -168,12 +172,16 @@ const warrantyOptions = [
 
 const ProductForm: React.FC<ProductFormProps> = ({
   mode,
-  productId,
+  productSlug,
+  productId: externalProductId, // ID passed from parent (extracted from fetched product)
   onSubmit,
   onSaveDraft,
   onCancel,
   isLoading: externalIsLoading,
 }) => {
+  // Store the ID extracted from fetched product
+  const [internalProductId, setInternalProductId] = useState<string | undefined>(externalProductId);
+  const productId = externalProductId || internalProductId;
   const router = useRouter();
   
   // Internal loading state for API submission (if not provided externally)
@@ -201,6 +209,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
     // Pricing
     price, setPrice,
     salePrice, setSalePrice,
+    onSale, setOnSale,
+    saleStart, setSaleStart,
+    saleEnd, setSaleEnd,
     tax, setTax,
     quantity, setQuantity, // Main product quantity - separate from variant stock
     
@@ -271,17 +282,20 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Fetch product data in edit mode and initialize store
   useEffect(() => {
     const fetchProduct = async () => {
-      // console.log("[ProductForm] useEffect triggered - mode:", mode, "productId:", productId);
-      
-      if (mode === "edit" && productId) {
+      if (mode === "edit" && productSlug) {
         try {
           setIsFetchingProduct(true);
-          // console.log("[ProductForm] Fetching product with ID:", productId);
           
-          const response = await getProductByIdApi(productId);
+          // Fetch product by slug (not ID)
+          const response = await getProductBySlugApi(productSlug);
           
-          // getProductByIdApi returns { status: string, data: Product }
+          // getProductBySlugApi returns { status: string, data: Product }
           const productData = response.data;
+          
+          // Extract and store the ID from fetched product (needed for updates)
+          if (productData._id || productData.id) {
+            setInternalProductId(productData._id || productData.id);
+          }
           
           if (!productData) {
             throw new Error("Product data not found");
@@ -314,9 +328,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
     };
 
     fetchProduct();
-    // Only depend on mode and productId - store functions (initializeFromProduct, resetProductForm) are stable
+    // Only depend on mode and productSlug - store functions (initializeFromProduct, resetProductForm) are stable
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, productId]);
+  }, [mode, productSlug]);
 
   // File input refs
   const featuredImageInputRef = useRef<HTMLInputElement>(null);
@@ -437,6 +451,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
       condition,
       price: parseFloat(price) || 0,
       salePrice: parseFloat(salePrice) || 0,
+      onSale,
+      saleStart,
+      saleEnd,
       tax: parseFloat(tax) || 0,
       quantity: parseInt(quantity) || 0, // Main product quantity, separate from variant stock
       featuredImage,
@@ -466,6 +483,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
     model?: string;
     category?: string;
     price?: string;
+    salePrice?: string;
+    saleDates?: string;
     mainImage?: string;
   }
 
@@ -493,6 +512,21 @@ const ProductForm: React.FC<ProductFormProps> = ({
     // Pricing validation
     if (!data.price || data.price <= 0) {
       errors.price = "Price must be greater than 0";
+    }
+
+    // Sales validation
+    if (data.onSale) {
+      if (!data.salePrice || data.salePrice <= 0) {
+        errors.salePrice = "Sale price is required when On Sale is enabled";
+      } else if (data.salePrice >= data.price) {
+        errors.salePrice = "Sale price must be less than regular price";
+      }
+
+      if (!data.saleStart || !data.saleEnd) {
+        errors.saleDates = "Sale start and end dates are required when On Sale is enabled";
+      } else if (new Date(data.saleStart) >= new Date(data.saleEnd)) {
+        errors.saleDates = "Sale end date must be after sale start date";
+      }
     }
 
     // Main image validation (required for create mode only)
@@ -523,7 +557,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     // Pricing
     formData.append("price", data.price.toString());
-    if (data.salePrice) formData.append("salePrice", data.salePrice.toString());
+    if (data.salePrice) {
+      formData.append("salePrice", data.salePrice.toString());
+      formData.append("sale_price", data.salePrice.toString()); // legacy sync
+    }
+    formData.append("on_sale", data.onSale.toString());
+    if (data.onSale) {
+      if (data.saleStart) formData.append("sale_start", data.saleStart);
+      if (data.saleEnd) formData.append("sale_end", data.saleEnd);
+    }
     if (data.tax) formData.append("tax", data.tax.toString());
     
     // Stock Quantity - main product quantity (NOT derived from variants)
@@ -571,7 +613,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           additionalInfoObject[item.key.trim()] = item.value || "";
         }
       });
-      
+
       // Only append if there's at least one valid key-value pair
       if (Object.keys(additionalInfoObject).length > 0) {
         formData.append("additional_info", JSON.stringify(additionalInfoObject));
@@ -607,7 +649,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       if (isSubmittingRef.current) return;
       isSubmittingRef.current = true;
       try {
-        await onSubmit(data);
+      await onSubmit(data);
       } finally {
         isSubmittingRef.current = false;
       }
@@ -716,7 +758,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       if (isSubmittingRef.current) return;
       isSubmittingRef.current = true;
       try {
-        await onSaveDraft({ ...data, status: "draft" });
+      await onSaveDraft({ ...data, status: "draft" });
       } finally {
         isSubmittingRef.current = false;
       }
@@ -834,6 +876,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setTagInput("");
     }
   };
+
+  const toDateInputValue = (value: string) => (value ? value.slice(0, 16) : "");
 
   // Remove tag
   const removeTag = (tag: string) => {
@@ -1004,8 +1048,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                   value={cat._id} 
                                   className="font-semibold"
                                 >
-                                  {cat.name}
-                                </SelectItem>
+                            {cat.name}
+                          </SelectItem>
                                 {/* Subcategories (children) - indented */}
                                 {cat.children && Array.isArray(cat.children) && cat.children.length > 0 && (
                                   <>
@@ -1151,12 +1195,54 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       onChange={(e) => setSalePrice(e.target.value)}
                       className="rounded-l-none"
                       size="lg"
+                      disabled={!onSale}
                     />
                   </InputGroup>
                 </div>
                 </div>
 
+              {/* Sale Controls */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-default-600">On Sale</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Enable to set sale price and schedule.
+                      </p>
+                    </div>
+                    <Switch checked={onSale} onCheckedChange={setOnSale} />
+                  </div>
+
+                  {onSale && (
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-default-600">Sale Starts</Label>
+                          <Input
+                            type="datetime-local"
+                            value={toDateInputValue(saleStart)}
+                            onChange={(e) => setSaleStart(e.target.value)}
+                            size="lg"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-default-600">Sale Ends</Label>
+                          <Input
+                            type="datetime-local"
+                            value={toDateInputValue(saleEnd)}
+                            onChange={(e) => setSaleEnd(e.target.value)}
+                            size="lg"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Sale price must be lower than regular price. Both start and end dates are required.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Tax */}
                 <div className="space-y-2">
                   <Label htmlFor="tax" className="text-default-600">
@@ -1663,10 +1749,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <Card>
             <CardHeader className="border-b border-border pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-medium flex items-center gap-2">
+              <CardTitle className="text-lg font-medium flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
                   Additional Information
-                </CardTitle>
+              </CardTitle>
                 <Button 
                   type="button" 
                   onClick={addAdditionalInfoField} 
@@ -1684,42 +1770,42 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm">No additional information added yet.</p>
                   <p className="text-xs mt-1">Click "Add Field" to add key-value pairs.</p>
-                </div>
+                  </div>
               ) : (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {additionalInfo.map((item, index) => (
                     <div
                       key={index}
                       className="flex gap-3 items-start p-4 border border-default-200 rounded-lg bg-default-50/50"
                     >
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-default-600 text-sm">
+              <div className="space-y-2">
+                    <Label className="text-default-600 text-sm">
                             Key
-                          </Label>
-                          <Input
+                </Label>
+                  <Input
                             placeholder="e.g., Display Size, Processor, RAM"
                             value={item.key}
                             onChange={(e) =>
                               updateAdditionalInfoField(index, { key: e.target.value })
                             }
-                            size="lg"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-default-600 text-sm">
+                    size="lg"
+                  />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-default-600 text-sm">
                             Value
-                          </Label>
-                          <Input
+                    </Label>
+                    <Input
                             placeholder="e.g., 6.8 inches, Snapdragon 8 Gen 3, 12GB"
                             value={item.value}
                             onChange={(e) =>
                               updateAdditionalInfoField(index, { value: e.target.value })
                             }
-                            size="lg"
-                          />
-                        </div>
-                      </div>
+                      size="lg"
+                    />
+                  </div>
+                </div>
                       <Button
                         type="button"
                         variant="ghost"
@@ -1729,9 +1815,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </div>
+              </div>
                   ))}
-                </div>
+                  </div>
               )}
               <p className="text-xs text-muted-foreground mt-4">
                 Add custom technical specifications and additional product information as key-value pairs.
@@ -1744,7 +1830,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <CardHeader className="border-b border-border pb-4">
               <CardTitle className="text-lg font-medium flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" />
-                Additional Information
+                Description
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-5">

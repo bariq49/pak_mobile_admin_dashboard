@@ -46,9 +46,9 @@ export async function getCategoriesApi(page = 1, limit = 10): Promise<GetCategor
     return data;
 }
 
-/* ---------------- GET CATEGORY BY ID API ---------------- */
-export async function getCategoryByIdApi(id: string): Promise<{ status: string; data: Category }> {
-    const response = await http.get<any>(`${API_RESOURCES.CATEGORIES}/${id}`);
+/* ---------------- GET CATEGORY BY SLUG API ---------------- */
+export async function getCategoryBySlugApi(slug: string): Promise<{ status: string; data: Category }> {
+    const response = await http.get<any>(`${API_RESOURCES.CATEGORIES}/${slug}`);
     const responseData = response.data;
     let categoryData: Category | null = null;
 
@@ -65,6 +65,14 @@ export async function getCategoryByIdApi(id: string): Promise<{ status: string; 
         throw new Error("Category not found in API response");
     }
     return { status: 'success', data: categoryData };
+}
+
+/* ---------------- GET CATEGORY BY ID API (for internal use) ---------------- */
+// Keep this for backward compatibility, but prefer getCategoryBySlugApi
+export async function getCategoryByIdApi(id: string): Promise<{ status: string; data: Category }> {
+    // For now, try to use as slug first, then fallback to ID if needed
+    // This maintains backward compatibility during transition
+    return getCategoryBySlugApi(id);
 }
 
 /* ---------------- GET ROOT CATEGORIES API ---------------- */

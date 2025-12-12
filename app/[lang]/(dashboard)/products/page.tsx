@@ -36,16 +36,16 @@ export default function ProductsPage() {
   };
 
   const handleEdit = (product: any) => {
-    // Get the product ID (support both id and _id)
-    const productId = product.id || product._id;
+    // Get the product slug for navigation (backend uses slug for GET operations)
+    const productSlug = product.slug;
     
-    if (!productId) {
-      toast.error("Product ID not found");
+    if (!productSlug) {
+      toast.error("Product slug not found");
       return;
     }
     
-    // Navigate to the edit page
-    router.push(`/en/products/${productId}/edit`);
+    // Navigate to the edit page using the slug
+    router.push(`/en/products/${productSlug}/edit`);
   };
 
   const columns = useMemo(

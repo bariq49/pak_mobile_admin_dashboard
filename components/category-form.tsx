@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCategoryByIdApi, getRootCategoriesApi, createSubcategoryApi, updateSubcategoryApi, Category } from "@/api/categories/categories.api";
+import { getCategoryBySlugApi, getRootCategoriesApi, createSubcategoryApi, updateSubcategoryApi, Category } from "@/api/categories/categories.api";
 import { toast } from "sonner";
 import { useCategoryFormStore } from "@/store";
 import http from "@/utils/http";
@@ -50,7 +50,8 @@ export interface CategoryFormData {
 
 interface CategoryFormProps {
   mode: "create" | "edit";
-  categoryId?: string; // Required for edit mode - used to fetch category data
+  categorySlug?: string; // Required for edit mode - used to fetch category data by slug
+  categoryId?: string; // Optional - ID extracted from fetched category, used for updates
   onSubmit?: (data: CategoryFormData) => void | Promise<void>; // Optional - if not provided, handles submission internally
   onSaveDraft?: (data: CategoryFormData) => void | Promise<void>; // Optional - if not provided, handles submission internally
   onCancel?: () => void;
@@ -59,12 +60,16 @@ interface CategoryFormProps {
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
   mode,
-  categoryId,
+  categorySlug,
+  categoryId: externalCategoryId, // ID passed from parent (extracted from fetched category)
   onSubmit,
   onSaveDraft,
   onCancel,
   isLoading: externalIsLoading,
 }) => {
+  // Store the ID extracted from fetched category
+  const [internalCategoryId, setInternalCategoryId] = useState<string | undefined>(externalCategoryId);
+  const categoryId = externalCategoryId || internalCategoryId;
   const router = useRouter();
   const isSubmittingRef = useRef(false);
   const [internalIsLoading, setInternalIsLoading] = useState(false);
@@ -129,20 +134,25 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   // Fetch category data for edit mode
   useEffect(() => {
     const fetchCategory = async () => {
-      if (mode === "edit" && categoryId) {
+      if (mode === "edit" && categorySlug) {
         try {
           setIsFetchingCategory(true);
-          // categoryId is the _id (MongoDB ID), not slug
-          const response = await getCategoryByIdApi(categoryId);
+          // Fetch category by slug (not ID)
+          const response = await getCategoryBySlugApi(categorySlug);
           const categoryData = response?.data;
 
           if (!categoryData) {
             throw new Error("Category data not found");
           }
 
+          // Extract and store the ID from fetched category (needed for updates)
+          if (categoryData._id) {
+            setInternalCategoryId(categoryData._id);
+          }
+
           initializeFromCategory(categoryData);
         } catch (error: any) {
-          console.error(`[CategoryForm] Failed to fetch category with ID ${categoryId}:`, error);
+          console.error(`[CategoryForm] Failed to fetch category with slug ${categorySlug}:`, error);
           const errorMessage = error?.response?.data?.message || error?.message || "Failed to load category";
           toast.error("Failed to load category", { description: errorMessage });
           resetCategoryForm();
@@ -156,7 +166,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     };
 
     fetchCategory();
-  }, [mode, categoryId, initializeFromCategory, resetCategoryForm]);
+  }, [mode, categorySlug, initializeFromCategory, resetCategoryForm]);
 
   // Handle image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

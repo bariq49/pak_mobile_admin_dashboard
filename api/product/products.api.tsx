@@ -28,6 +28,10 @@ export interface Product {
   description?: string;
   price: number;
   salePrice?: number;
+  sale_price?: number;
+  on_sale?: boolean;
+  sale_start?: string;
+  sale_end?: string;
   costPrice?: number;
   tax?: number;
   stock?: number;
@@ -103,9 +107,9 @@ export async function getProductsApi(page = 1, limit = 10): Promise<GetProductsR
   return data;
 }
 
-// GET SINGLE PRODUCT BY ID
-export async function getProductByIdApi(id: string): Promise<{ status: string; data: Product }> {
-  const response = await http.get<any>(`${API_RESOURCES.PRODUCTS}/${id}`);
+// GET SINGLE PRODUCT BY SLUG
+export async function getProductBySlugApi(slug: string): Promise<{ status: string; data: Product }> {
+  const response = await http.get<any>(`${API_RESOURCES.PRODUCTS}/${slug}`);
   const responseData = response.data;
   
   // Extract product from response structure: responseData.data.product
@@ -116,6 +120,14 @@ export async function getProductByIdApi(id: string): Promise<{ status: string; d
   }
   
   return { status: 'success', data: productData };
+}
+
+// GET SINGLE PRODUCT BY ID (for backward compatibility)
+// Keep this for internal use, but prefer getProductBySlugApi
+export async function getProductByIdApi(id: string): Promise<{ status: string; data: Product }> {
+  // For now, try to use as slug first, then fallback to ID if needed
+  // This maintains backward compatibility during transition
+  return getProductBySlugApi(id);
 }
 
 // CREATE NEW PRODUCT
@@ -135,5 +147,24 @@ export async function updateProductApi(id: string, payload: Record<string, any>)
 // DELETE PRODUCT
 export async function deleteProductApi(id: string) {
   const { data } = await http.delete(`${API_RESOURCES.PRODUCTS}/${id}`);
+  return data;
+}
+
+// GET PRODUCTS ON SALE
+export async function getProductsOnSaleApi(query = ""): Promise<GetProductsResponse> {
+  const { data } = await http.get<GetProductsResponse>(
+    `${API_RESOURCES.SALE_PRODUCTS}${query ? `?${query}` : ""}`
+  );
+  return data;
+}
+
+// GET TOP SALES PRODUCTS
+export async function getTopSalesProductsApi(params?: { categoryId?: string; sellerId?: string }) {
+  const searchParams = new URLSearchParams();
+  if (params?.categoryId) searchParams.append("categoryId", params.categoryId);
+  if (params?.sellerId) searchParams.append("sellerId", params.sellerId);
+
+  const queryString = searchParams.toString();
+  const { data } = await http.get(`${API_RESOURCES.TOP_SALES_PRODUCTS}${queryString ? `?${queryString}` : ""}`);
   return data;
 }

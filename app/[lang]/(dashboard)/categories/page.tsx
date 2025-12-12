@@ -29,16 +29,16 @@ export default function CategoriesPage() {
     const handleDelete = (category: any) => deleteCategory(category._id);
 
     const handleEdit = (category: any) => {
-        // Get the category ID - use _id (MongoDB ID) not slug
-        const categoryId = category._id || category.id;
+        // Get the category slug for navigation (backend uses slug for GET operations)
+        const categorySlug = category.slug;
 
-        if (!categoryId) {
-            toast.error("Category ID not found");
+        if (!categorySlug) {
+            toast.error("Category slug not found");
             return;
         }
 
-        // Navigate to the edit page using the ID
-        router.push(`/en/categories/${categoryId}/edit`);
+        // Navigate to the edit page using the slug
+        router.push(`/en/categories/${categorySlug}/edit`);
     };
 
     const columns = useMemo(

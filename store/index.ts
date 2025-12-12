@@ -123,9 +123,12 @@ interface ProductFormStoreState {
   tags: string[];
   condition: string;
   
-  // Pricing
+  // Pricing & Sales
   price: string;
   salePrice: string;
+  onSale: boolean;
+  saleStart: string;
+  saleEnd: string;
   tax: string;
   quantity: string; // Main product quantity - separate from variant stock
   
@@ -160,9 +163,12 @@ interface ProductFormStoreState {
   setTags: (value: string[]) => void;
   setCondition: (value: string) => void;
   
-  // Actions - Pricing
+  // Actions - Pricing & Sales
   setPrice: (value: string) => void;
   setSalePrice: (value: string) => void;
+  setOnSale: (value: boolean) => void;
+  setSaleStart: (value: string) => void;
+  setSaleEnd: (value: string) => void;
   setTax: (value: string) => void;
   setQuantity: (value: string) => void;
   
@@ -211,9 +217,12 @@ const initialProductFormState = {
   tags: [] as string[],
   condition: "new",
   
-  // Pricing
+  // Pricing & Sales
   price: "",
   salePrice: "",
+  onSale: false,
+  saleStart: "",
+  saleEnd: "",
   tax: "",
   quantity: "0",
   
@@ -277,21 +286,26 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
     set({ condition: value });
   },
   
-  // Pricing Actions
+  // Pricing & Sales Actions
   setPrice: (value: string) => {
-    // console.log("[ProductStore] setPrice:", value);
     set({ price: value });
   },
   setSalePrice: (value: string) => {
-    // console.log("[ProductStore] setSalePrice:", value);
     set({ salePrice: value });
   },
+  setOnSale: (value: boolean) => {
+    set({ onSale: value });
+  },
+  setSaleStart: (value: string) => {
+    set({ saleStart: value });
+  },
+  setSaleEnd: (value: string) => {
+    set({ saleEnd: value });
+  },
   setTax: (value: string) => {
-    // console.log("[ProductStore] setTax:", value);
     set({ tax: value });
   },
   setQuantity: (value: string) => {
-    // console.log("[ProductStore] setQuantity:", value, "(main product quantity, separate from variant stock)");
     set({ quantity: value });
   },
   
@@ -452,9 +466,12 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
       condition: product.condition || "new",
       tags: Array.isArray(product.tags) ? product.tags.map((t: any) => typeof t === 'string' ? t : t.name || t) : [],
       
-      // Pricing - handle both salePrice and sale_price
+      // Pricing & Sales - handle both salePrice and sale_price, and on_sale flags/dates
       price: product.price !== undefined ? product.price.toString() : "0",
       salePrice: (product.salePrice !== undefined ? product.salePrice : product.sale_price !== undefined ? product.sale_price : 0).toString(),
+      onSale: Boolean(product.on_sale),
+      saleStart: product.sale_start || "",
+      saleEnd: product.sale_end || "",
       tax: product.tax !== undefined ? product.tax.toString() : "0",
       quantity: product.quantity !== undefined ? product.quantity.toString() : "0",
       
@@ -603,6 +620,237 @@ const initialCategoryFormState = {
   metaTitle: "",
   metaDescription: "",
 };
+
+// Deal Form Store
+interface DealFormStoreState {
+  // Basic Info
+  title: string;
+  description: string;
+  btnText: string;
+  
+  // Images
+  desktopImage: string;
+  desktopImageFile: File | null;
+  mobileImage: string;
+  mobileImageFile: File | null;
+  
+  // Target Selection
+  products: string[]; // Array of product IDs
+  categories: string[]; // Array of category IDs
+  subCategories: string[]; // Array of subcategory IDs
+  isGlobal: boolean;
+  
+  // Discount Details
+  discountType: "percentage" | "fixed" | "flat";
+  discountValue: string;
+  
+  // Time Window
+  startDate: string;
+  endDate: string;
+  
+  // Priority
+  priority: string;
+  
+  // Actions - Basic Info
+  setTitle: (value: string) => void;
+  setDescription: (value: string) => void;
+  setBtnText: (value: string) => void;
+  
+  // Actions - Images
+  setDesktopImage: (value: string) => void;
+  setDesktopImageFile: (value: File | null) => void;
+  setMobileImage: (value: string) => void;
+  setMobileImageFile: (value: File | null) => void;
+  
+  // Actions - Target Selection
+  setProducts: (value: string[]) => void;
+  addProduct: (productId: string) => void;
+  removeProduct: (productId: string) => void;
+  setCategories: (value: string[]) => void;
+  addCategory: (categoryId: string) => void;
+  removeCategory: (categoryId: string) => void;
+  setSubCategories: (value: string[]) => void;
+  addSubCategory: (subCategoryId: string) => void;
+  removeSubCategory: (subCategoryId: string) => void;
+  setIsGlobal: (value: boolean) => void;
+  
+  // Actions - Discount
+  setDiscountType: (value: "percentage" | "fixed" | "flat") => void;
+  setDiscountValue: (value: string) => void;
+  
+  // Actions - Time Window
+  setStartDate: (value: string) => void;
+  setEndDate: (value: string) => void;
+  
+  // Actions - Priority
+  setPriority: (value: string) => void;
+  
+  // Reset store to initial state
+  resetDealForm: () => void;
+  
+  // Initialize from deal data (for edit mode)
+  initializeFromDeal: (deal: any) => void;
+}
+
+const initialDealFormState = {
+  // Basic Info
+  title: "",
+  description: "",
+  btnText: "Shop Now",
+  
+  // Images
+  desktopImage: "",
+  desktopImageFile: null as File | null,
+  mobileImage: "",
+  mobileImageFile: null as File | null,
+  
+  // Target Selection
+  products: [] as string[],
+  categories: [] as string[],
+  subCategories: [] as string[],
+  isGlobal: false,
+  
+  // Discount Details
+  discountType: "percentage" as "percentage" | "fixed" | "flat",
+  discountValue: "",
+  
+  // Time Window
+  startDate: "",
+  endDate: "",
+  
+  // Priority
+  priority: "1",
+};
+
+export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
+  ...initialDealFormState,
+  
+  // Basic Info Actions
+  setTitle: (value: string) => set({ title: value }),
+  setDescription: (value: string) => set({ description: value }),
+  setBtnText: (value: string) => set({ btnText: value }),
+  
+  // Images Actions
+  setDesktopImage: (value: string) => set({ desktopImage: value }),
+  setDesktopImageFile: (value: File | null) => set({ desktopImageFile: value }),
+  setMobileImage: (value: string) => set({ mobileImage: value }),
+  setMobileImageFile: (value: File | null) => set({ mobileImageFile: value }),
+  
+  // Target Selection Actions
+  setProducts: (value: string[]) => set({ products: value }),
+  addProduct: (productId: string) => {
+    const current = get().products;
+    if (!current.includes(productId)) {
+      set({ products: [...current, productId] });
+    }
+  },
+  removeProduct: (productId: string) => {
+    const current = get().products;
+    set({ products: current.filter(id => id !== productId) });
+  },
+  setCategories: (value: string[]) => set({ categories: value }),
+  addCategory: (categoryId: string) => {
+    const current = get().categories;
+    if (!current.includes(categoryId)) {
+      set({ categories: [...current, categoryId] });
+    }
+  },
+  removeCategory: (categoryId: string) => {
+    const current = get().categories;
+    set({ categories: current.filter(id => id !== categoryId) });
+  },
+  setSubCategories: (value: string[]) => set({ subCategories: value }),
+  addSubCategory: (subCategoryId: string) => {
+    const current = get().subCategories;
+    if (!current.includes(subCategoryId)) {
+      set({ subCategories: [...current, subCategoryId] });
+    }
+  },
+  removeSubCategory: (subCategoryId: string) => {
+    const current = get().subCategories;
+    set({ subCategories: current.filter(id => id !== subCategoryId) });
+  },
+  setIsGlobal: (value: boolean) => {
+    set({ isGlobal: value });
+    // When isGlobal is true, clear all specific selections
+    if (value) {
+      set({ products: [], categories: [], subCategories: [] });
+    }
+  },
+  
+  // Discount Actions
+  setDiscountType: (value: "percentage" | "fixed" | "flat") => set({ discountType: value }),
+  setDiscountValue: (value: string) => set({ discountValue: value }),
+  
+  // Time Window Actions
+  setStartDate: (value: string) => set({ startDate: value }),
+  setEndDate: (value: string) => set({ endDate: value }),
+  
+  // Priority Actions
+  setPriority: (value: string) => set({ priority: value }),
+  
+  // Reset to initial state
+  resetDealForm: () => set(initialDealFormState),
+  
+  // Initialize from deal data (for edit mode)
+  initializeFromDeal: (deal: any) => {
+    if (!deal || typeof deal !== 'object') {
+      return;
+    }
+
+    // Extract images
+    let desktopImageUrl = "";
+    let mobileImageUrl = "";
+    if (deal.image) {
+      if (deal.image.desktop?.url) {
+        desktopImageUrl = deal.image.desktop.url;
+      }
+      if (deal.image.mobile?.url) {
+        mobileImageUrl = deal.image.mobile.url;
+      }
+    }
+
+    const newState = {
+      // Basic Info
+      title: deal.title || "",
+      description: deal.description || "",
+      btnText: deal.btnText || "Shop Now",
+      
+      // Images
+      desktopImage: desktopImageUrl,
+      desktopImageFile: null as File | null,
+      mobileImage: mobileImageUrl,
+      mobileImageFile: null as File | null,
+      
+      // Target Selection
+      products: Array.isArray(deal.products) 
+        ? deal.products.map((p: any) => typeof p === 'string' ? p : p._id || p.id || "")
+        : [],
+      categories: Array.isArray(deal.categories)
+        ? deal.categories.map((c: any) => typeof c === 'string' ? c : c._id || c.id || "")
+        : [],
+      subCategories: Array.isArray(deal.subCategories)
+        ? deal.subCategories.map((sc: any) => typeof sc === 'string' ? sc : sc._id || sc.id || "")
+        : [],
+      isGlobal: deal.isGlobal || false,
+      
+      // Discount Details
+      discountType: (deal.discountType === "percentage" || deal.discountType === "fixed" || deal.discountType === "flat")
+        ? deal.discountType
+        : "percentage" as "percentage" | "fixed" | "flat",
+      discountValue: deal.discountValue !== undefined ? deal.discountValue.toString() : "",
+      
+      // Time Window
+      startDate: deal.startDate ? new Date(deal.startDate).toISOString().slice(0, 16) : "",
+      endDate: deal.endDate ? new Date(deal.endDate).toISOString().slice(0, 16) : "",
+      
+      // Priority
+      priority: deal.priority !== undefined ? deal.priority.toString() : "1",
+    };
+    
+    set(newState);
+  },
+}));
 
 export const useCategoryFormStore = create<CategoryFormStoreState>()((set, get) => ({
   ...initialCategoryFormState,

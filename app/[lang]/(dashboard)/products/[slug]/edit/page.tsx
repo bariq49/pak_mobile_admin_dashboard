@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import ProductForm, { ProductFormData } from "@/components/product-form";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { toast } from "sonner";
 import http from "@/utils/http";
 import { API_RESOURCES } from "@/utils/api-endpoints";
+import { getProductBySlugApi } from "@/api/product/products.api";
 
 // Validation errors interface
 interface ValidationErrors {
@@ -15,21 +16,45 @@ interface ValidationErrors {
   model?: string;
   category?: string;
   price?: string;
+    salePrice?: string;
+    saleDates?: string;
 }
 
 const EditProductPage = () => {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  // Get product slug from URL params (used for fetching)
+  const slug = params.slug as string;
   const [isLoading, setIsLoading] = useState(false);
+  const [productId, setProductId] = useState<string | undefined>(undefined);
   const isSubmittingRef = useRef(false);
 
-  // Validate product ID
-  if (!id) {
-    toast.error("Product ID is required");
+  // Validate product slug
+  if (!slug) {
+    toast.error("Product slug is required");
     router.push("/en/products");
     return null;
   }
+
+  // Fetch product by slug to extract ID (needed for updates)
+  useEffect(() => {
+    const fetchProductId = async () => {
+      try {
+        const response = await getProductBySlugApi(slug);
+        if (response?.data?._id || response?.data?.id) {
+          setProductId(response.data._id || response.data.id);
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch product:", error);
+        toast.error("Failed to load product", {
+          description: error?.response?.data?.message || error?.message || "Product not found",
+        });
+        router.push("/en/products");
+      }
+    };
+
+    fetchProductId();
+  }, [slug, router]);
 
   // Validate required fields
   const validateForm = (data: ProductFormData): ValidationErrors => {
@@ -57,6 +82,20 @@ const EditProductPage = () => {
       errors.price = "Price must be greater than 0";
     }
 
+    if (data.onSale) {
+      if (!data.salePrice || data.salePrice <= 0) {
+        errors.salePrice = "Sale price is required when On Sale is enabled";
+      } else if (data.salePrice >= data.price) {
+        errors.salePrice = "Sale price must be less than regular price";
+      }
+
+      if (!data.saleStart || !data.saleEnd) {
+        errors.saleDates = "Sale start and end dates are required when On Sale is enabled";
+      } else if (new Date(data.saleStart) >= new Date(data.saleEnd)) {
+        errors.saleDates = "Sale end date must be after sale start date";
+      }
+    }
+
     return errors;
   };
 
@@ -70,6 +109,7 @@ const EditProductPage = () => {
     formData.append("model", data.model);
     if (data.sku) formData.append("sku", data.sku);
     formData.append("category", data.category);
+    if (data.subCategory) formData.append("subCategory", data.subCategory);
     formData.append("condition", data.condition || "new");
 
     // Tags (as JSON array)
@@ -79,8 +119,15 @@ const EditProductPage = () => {
 
     // Pricing
     formData.append("price", data.price.toString());
-    if (data.salePrice) formData.append("salePrice", data.salePrice.toString());
-    if (data.costPrice) formData.append("costPrice", data.costPrice.toString());
+    if (data.salePrice) {
+      formData.append("salePrice", data.salePrice.toString());
+      formData.append("sale_price", data.salePrice.toString());
+    }
+    formData.append("on_sale", data.onSale.toString());
+    if (data.onSale) {
+      if (data.saleStart) formData.append("sale_start", data.saleStart);
+      if (data.saleEnd) formData.append("sale_end", data.saleEnd);
+    }
     if (data.tax) formData.append("tax", data.tax.toString());
     
     // Stock Quantity - main product quantity (NOT derived from variants)
@@ -120,27 +167,18 @@ const EditProductPage = () => {
       formData.append("variants", JSON.stringify(validVariants));
     }
 
-    // Technical Specifications - send as JSON object
-    const specifications = {
-      displaySize: data.displaySize || undefined,
-      displayType: data.displayType || undefined,
-      processor: data.processor || undefined,
-      rearCamera: data.rearCamera || undefined,
-      frontCamera: data.frontCamera || undefined,
-      battery: data.battery || undefined,
-      fastCharging: data.fastCharging || undefined,
-      os: data.os || undefined,
-      network: data.network || undefined,
-      connectivity: data.connectivity || undefined,
-      simSupport: data.simSupport || undefined,
-      dimensions: data.dimensions || undefined,
-      weight: data.weight || undefined,
-    };
+    // Additional Information - Convert array to object {key: value}
+    if (data.additionalInfo && data.additionalInfo.length > 0) {
+      const additionalInfoObject: Record<string, string> = {};
+      data.additionalInfo.forEach((item) => {
+        if (item.key && item.key.trim()) {
+          additionalInfoObject[item.key.trim()] = item.value || "";
+        }
+      });
 
-    // Only add specs if at least one field has value
-    const hasSpecs = Object.values(specifications).some(v => v);
-    if (hasSpecs) {
-      formData.append("specifications", JSON.stringify(specifications));
+      if (Object.keys(additionalInfoObject).length > 0) {
+        formData.append("additional_info", JSON.stringify(additionalInfoObject));
+      }
     }
 
     // Description and What's in the Box
@@ -185,8 +223,13 @@ const EditProductPage = () => {
       // Build FormData
       const formData = buildFormData(data);
 
+      // Use productId (extracted from fetched product) for updates
+      if (!productId) {
+        throw new Error("Product ID not found. Please refresh the page.");
+      }
+
       // Send as multipart/form-data using PATCH method
-      await http.patch(`${API_RESOURCES.PRODUCTS}/${id}`, formData, {
+      await http.patch(`${API_RESOURCES.PRODUCTS}/${productId}`, formData, {
         timeout: 120000,
       });
 
@@ -251,8 +294,13 @@ const EditProductPage = () => {
       const draftData = { ...data, status: "draft" as const };
       const formData = buildFormData(draftData);
 
+      // Use productId (extracted from fetched product) for updates
+      if (!productId) {
+        throw new Error("Product ID not found. Please refresh the page.");
+      }
+
       // Send as multipart/form-data using PATCH method
-      await http.patch(`${API_RESOURCES.PRODUCTS}/${id}`, formData, {
+      await http.patch(`${API_RESOURCES.PRODUCTS}/${productId}`, formData, {
         timeout: 120000,
       });
 
@@ -313,10 +361,11 @@ const EditProductPage = () => {
         <BreadcrumbItem>Edit Product</BreadcrumbItem>
       </Breadcrumbs>
 
-      {/* Product Form - handles its own data fetching */}
+      {/* Product Form - handles its own data fetching by slug, uses ID for updates */}
       <ProductForm 
         mode="edit"
-        productId={id}
+        productSlug={slug}
+        productId={productId}
         onSubmit={handleSubmit}
         onSaveDraft={handleSaveDraft}
         onCancel={handleCancel}

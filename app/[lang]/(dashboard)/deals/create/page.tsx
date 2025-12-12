@@ -1,77 +1,111 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
-import CategoryForm, { CategoryFormData } from "@/components/category-form";
+import { useRouter } from "next/navigation";
+import DealForm, { DealFormData } from "@/components/deal-form";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { toast } from "sonner";
-import http from "@/utils/http";
+import { createDealApi } from "@/api/deals/deals.api";
 import { API_RESOURCES } from "@/utils/api-endpoints";
+import http from "@/utils/http";
 
 // Validation errors interface
 interface ValidationErrors {
-  name?: string;
+  title?: string;
+  discountType?: string;
+  discountValue?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
-const EditCategoryPage = () => {
+const CreateDealPage = () => {
   const router = useRouter();
-  const params = useParams();
-  // Get category ID from URL params (this is the _id, not slug)
-  const id = params.id as string;
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
 
-  // Validate category ID
-  if (!id) {
-    toast.error("Category ID is required");
-    router.push("/en/categories");
-    return null;
-  }
-
   // Validate required fields
-  const validateForm = (data: CategoryFormData): ValidationErrors => {
+  const validateForm = (data: DealFormData): ValidationErrors => {
     const errors: ValidationErrors = {};
 
     // Basic Info validation
-    if (!data.name?.trim()) {
-      errors.name = "Category name is required";
+    if (!data.title?.trim()) {
+      errors.title = "Deal title is required";
+    }
+
+    if (!data.discountType) {
+      errors.discountType = "Discount type is required";
+    }
+
+    if (!data.discountValue || parseFloat(data.discountValue) <= 0) {
+      errors.discountValue = "Discount value must be greater than 0";
+    }
+
+    if (!data.startDate) {
+      errors.startDate = "Start date is required";
+    }
+
+    if (!data.endDate) {
+      errors.endDate = "End date is required";
+    }
+
+    if (data.startDate && data.endDate && new Date(data.startDate) >= new Date(data.endDate)) {
+      errors.endDate = "End date must be after start date";
     }
 
     return errors;
   };
 
   // Build FormData for multipart submission
-  const buildFormData = (data: CategoryFormData): FormData => {
+  const buildFormData = (data: DealFormData): FormData => {
     const formData = new FormData();
 
     // Basic Info
-    formData.append("name", data.name);
-    if (data.slug) formData.append("slug", data.slug);
+    formData.append("title", data.title);
     if (data.description) formData.append("description", data.description);
+    if (data.btnText) formData.append("btnText", data.btnText);
+
+    // Target Selection
+    formData.append("isGlobal", data.isGlobal.toString());
     
-    // Parent and Type
-    if (data.parent) {
-      formData.append("parent", data.parent);
+    // Only append specific targets if not global
+    if (!data.isGlobal) {
+      if (data.products && data.products.length > 0) {
+        formData.append("products", JSON.stringify(data.products));
+      }
+      if (data.categories && data.categories.length > 0) {
+        formData.append("categories", JSON.stringify(data.categories));
+      }
+      if (data.subCategories && data.subCategories.length > 0) {
+        formData.append("subCategories", JSON.stringify(data.subCategories));
+      }
     }
-    formData.append("type", data.type);
 
-    // Image - only append if it's a new file (API expects "thumbnail")
-    if (data.imageFile) {
-      formData.append("thumbnail", data.imageFile);
+    // Discount Details
+    formData.append("discountType", data.discountType);
+    formData.append("discountValue", data.discountValue);
+
+    // Time Window
+    formData.append("startDate", data.startDate);
+    formData.append("endDate", data.endDate);
+
+    // Priority
+    if (data.priority) {
+      formData.append("priority", data.priority);
     }
 
-    // Status (API uses "active" not "isActive")
-    formData.append("active", data.isActive.toString());
-
-    // SEO
-    if (data.metaTitle) formData.append("metaTitle", data.metaTitle);
-    if (data.metaDescription) formData.append("metaDescription", data.metaDescription);
+    // Images - desktop and mobile
+    if (data.desktopImageFile) {
+      formData.append("desktop", data.desktopImageFile);
+    }
+    if (data.mobileImageFile) {
+      formData.append("mobile", data.mobileImageFile);
+    }
 
     return formData;
   };
 
   // Handle form submission
-  const handleSubmit = async (data: CategoryFormData) => {
+  const handleSubmit = async (data: DealFormData) => {
     // Prevent duplicate submissions
     if (isSubmittingRef.current || isLoading) {
       return;
@@ -92,14 +126,14 @@ const EditCategoryPage = () => {
 
     isSubmittingRef.current = true;
     setIsLoading(true);
-    const loadingToastId = toast.loading("Updating category...");
+    const loadingToastId = toast.loading("Creating deal...");
 
     try {
       // Build FormData
       const formData = buildFormData(data);
 
-      // Send as multipart/form-data using PATCH method
-      await http.patch(`${API_RESOURCES.CATEGORIES}/${id}`, formData, {
+      // Send as multipart/form-data
+      await http.post(API_RESOURCES.DEALS, formData, {
         timeout: 120000,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -107,21 +141,22 @@ const EditCategoryPage = () => {
       });
 
       // Success
-      toast.success("Category updated successfully!", {
+      toast.success("Deal created successfully!", {
         id: loadingToastId,
-        description: `${data.name} has been updated.`,
+        description: `${data.title} has been created.`,
       });
 
-      // Redirect to categories list after short delay
+      // Redirect to deals list after short delay
       setTimeout(() => {
-        router.push("/en/categories");
+        router.push("/en/deals");
       }, 1500);
+
     } catch (error: any) {
-      console.error("Error updating category:", error);
-
+      console.error("Error creating deal:", error);
+      
       // Handle API error
-      let errorMessage = "Failed to update category. Please try again.";
-
+      let errorMessage = "Failed to create deal. Please try again.";
+      
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.response?.status === 413) {
@@ -131,7 +166,7 @@ const EditCategoryPage = () => {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-
+      
       toast.error("Error", {
         id: loadingToastId,
         description: errorMessage,
@@ -143,16 +178,16 @@ const EditCategoryPage = () => {
   };
 
   // Handle save as draft
-  const handleSaveDraft = async (data: CategoryFormData) => {
+  const handleSaveDraft = async (data: DealFormData) => {
     // Prevent duplicate submissions
     if (isSubmittingRef.current || isLoading) {
       return;
     }
 
-    // For draft, only name is required
-    if (!data.name?.trim()) {
+    // For draft, only title is required
+    if (!data.title?.trim()) {
       toast.error("Validation Error", {
-        description: "Category name is required to save as draft",
+        description: "Deal title is required to save as draft",
       });
       return;
     }
@@ -162,44 +197,33 @@ const EditCategoryPage = () => {
     const loadingToastId = toast.loading("Saving draft...");
 
     try {
-      // Build FormData with inactive status
-      const draftData = { ...data, isActive: false };
-      const formData = buildFormData(draftData);
+      // Build FormData
+      const formData = buildFormData(data);
 
-      // Use appropriate endpoint based on whether it's a subcategory
-      if (data.parent) {
-        // Update subcategory draft
-        await http.patch(`${API_RESOURCES.SUBCATEGORIES}/${id}`, formData, {
-          timeout: 120000,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      } else {
-        // Update root category draft
-        await http.patch(`${API_RESOURCES.CATEGORIES}/${id}`, formData, {
-          timeout: 120000,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      }
+      // Send as multipart/form-data
+      await http.post(API_RESOURCES.DEALS, formData, {
+        timeout: 120000,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       // Success
       toast.success("Draft saved!", {
         id: loadingToastId,
-        description: `${data.name} has been saved as draft.`,
+        description: `${data.title} has been saved as draft.`,
       });
 
-      // Redirect to categories list
+      // Redirect to deals list
       setTimeout(() => {
-        router.push("/en/categories");
+        router.push("/en/deals");
       }, 1500);
+
     } catch (error: any) {
       console.error("Error saving draft:", error);
-
+      
       let errorMessage = "Failed to save draft. Please try again.";
-
+      
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.response?.status === 413) {
@@ -209,7 +233,7 @@ const EditCategoryPage = () => {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-
+      
       toast.error("Error", {
         id: loadingToastId,
         description: errorMessage,
@@ -226,36 +250,24 @@ const EditCategoryPage = () => {
     const confirmLeave = window.confirm(
       "Are you sure you want to cancel? Any unsaved changes will be lost."
     );
-
+    
     if (confirmLeave) {
-      router.push("/en/categories");
+      router.push("/en/deals");
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4">
-        <Breadcrumbs>
-          <BreadcrumbItem href="/dashboard">Dashboard</BreadcrumbItem>
-          <BreadcrumbItem href="/categories">Categories</BreadcrumbItem>
-          <BreadcrumbItem>Edit Category</BreadcrumbItem>
-        </Breadcrumbs>
+      {/* Breadcrumbs */}
+      <Breadcrumbs>
+        <BreadcrumbItem href="/dashboard">Dashboard</BreadcrumbItem>
+        <BreadcrumbItem href="/deals">Deals</BreadcrumbItem>
+        <BreadcrumbItem>Create Deal</BreadcrumbItem>
+      </Breadcrumbs>
 
-        <div>
-          <h1 className="text-2xl font-semibold text-default-900">
-            Edit Category
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Update category information and settings
-          </p>
-        </div>
-      </div>
-
-      {/* Category Form - handles its own data fetching */}
-      <CategoryForm
-        mode="edit"
-        categoryId={id}
+      {/* Deal Form */}
+      <DealForm 
+        mode="create"
         onSubmit={handleSubmit}
         onSaveDraft={handleSaveDraft}
         onCancel={handleCancel}
@@ -265,5 +277,5 @@ const EditCategoryPage = () => {
   );
 };
 
-export default EditCategoryPage;
+export default CreateDealPage;
 

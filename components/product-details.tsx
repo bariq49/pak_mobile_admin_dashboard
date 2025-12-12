@@ -33,7 +33,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     product.gallery?.[0]?.url ||
     product.images?.[0] ||
     product.thumbnail ||
-    product.mainImage ||
     null;
 
   const initials = product.name
@@ -151,6 +150,32 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               </span>
             </div>
           )}
+          <div>
+            <span className="text-muted-foreground">On Sale:</span>
+            <span className="ml-2 font-medium">
+              {product.on_sale ? "Yes" : "No"}
+            </span>
+          </div>
+          {product.on_sale && (
+            <>
+              {product.sale_start && (
+                <div>
+                  <span className="text-muted-foreground">Sale Starts:</span>
+                  <span className="ml-2 font-medium">
+                    {new Date(product.sale_start).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {product.sale_end && (
+                <div>
+                  <span className="text-muted-foreground">Sale Ends:</span>
+                  <span className="ml-2 font-medium">
+                    {new Date(product.sale_end).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
           {product.tax && (
             <div>
               <span className="text-muted-foreground">Tax:</span>
@@ -216,7 +241,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <div className="flex flex-wrap gap-2">
               {product.tags.map((tag, index) => (
                 <Badge key={index} variant="soft" color="default">
-                  {typeof tag === 'string' ? tag : tag.name || tag}
+                  {typeof tag === 'string' ? tag : (tag as any)?.name || String(tag)}
                 </Badge>
               ))}
             </div>

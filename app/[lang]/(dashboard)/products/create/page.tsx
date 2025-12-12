@@ -66,6 +66,7 @@ const CreateProductPage = () => {
     formData.append("model", data.model);
     if (data.sku) formData.append("sku", data.sku);
     formData.append("category", data.category);
+    if (data.subCategory) formData.append("subCategory", data.subCategory);
     formData.append("condition", data.condition || "new");
 
     // Tags (as JSON array)
@@ -76,8 +77,16 @@ const CreateProductPage = () => {
     // Pricing
     formData.append("price", data.price.toString());
     if (data.salePrice) formData.append("salePrice", data.salePrice.toString());
-    if (data.costPrice) formData.append("costPrice", data.costPrice.toString());
     if (data.tax) formData.append("tax", data.tax.toString());
+    
+    // Sale fields
+    if (data.onSale) {
+      formData.append("on_sale", "true");
+      if (data.saleStart) formData.append("sale_start", data.saleStart);
+      if (data.saleEnd) formData.append("sale_end", data.saleEnd);
+    } else {
+      formData.append("on_sale", "false");
+    }
     
     // Stock Quantity
     formData.append("quantity", String(data.quantity || 0));
@@ -115,27 +124,18 @@ const CreateProductPage = () => {
       formData.append("variants", JSON.stringify(validVariants));
     }
 
-    // Technical Specifications - send as JSON object
-    const specifications = {
-      displaySize: data.displaySize || undefined,
-      displayType: data.displayType || undefined,
-      processor: data.processor || undefined,
-      rearCamera: data.rearCamera || undefined,
-      frontCamera: data.frontCamera || undefined,
-      battery: data.battery || undefined,
-      fastCharging: data.fastCharging || undefined,
-      os: data.os || undefined,
-      network: data.network || undefined,
-      connectivity: data.connectivity || undefined,
-      simSupport: data.simSupport || undefined,
-      dimensions: data.dimensions || undefined,
-      weight: data.weight || undefined,
-    };
+    // Additional Information - Convert array to object {key: value}
+    if (data.additionalInfo && data.additionalInfo.length > 0) {
+      const additionalInfoObject: Record<string, string> = {};
+      data.additionalInfo.forEach((item) => {
+        if (item.key && item.key.trim()) {
+          additionalInfoObject[item.key.trim()] = item.value || "";
+        }
+      });
 
-    // Only add specs if at least one field has value
-    const hasSpecs = Object.values(specifications).some(v => v);
-    if (hasSpecs) {
-      formData.append("specifications", JSON.stringify(specifications));
+      if (Object.keys(additionalInfoObject).length > 0) {
+        formData.append("additional_info", JSON.stringify(additionalInfoObject));
+      }
     }
 
     // Description and What's in the Box
