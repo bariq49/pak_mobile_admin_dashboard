@@ -9,6 +9,9 @@ import type {
   VisitorsReportResponse,
 } from "./dashboard.api";
 
+// Re-export API response types that are used directly
+export type { RevenueChartResponse, VisitorsReportResponse } from "./dashboard.api";
+
 /* ============ TRANSFORMED TYPES ============ */
 
 export interface DashboardStats {
