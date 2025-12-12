@@ -3,6 +3,7 @@ const BASE_URL = "http://localhost:5000";
 export const API_RESOURCES = {
   // User & Auth
   USER: `${BASE_URL}/api/v1/users/me`,
+  ADMIN_ME: `${BASE_URL}/api/v1/admin/me`,
   ADDRESSES: `${BASE_URL}/api/v1/users/me/addresses`,
   CHANGE_PASSWORD: `${BASE_URL}/auth/update-password`,
   LOGIN: `${BASE_URL}/auth/admin/login`,
@@ -29,6 +30,16 @@ export const API_RESOURCES = {
   // Deals
   DEALS: `${BASE_URL}/api/v1/deals`,
   DEAL_BY_ID: `${BASE_URL}/api/v1/deals/:id`,
+
+  // Dashboard
+  DASHBOARD_STATS: `${BASE_URL}/api/v1/dashboard/stats`,
+  DASHBOARD_REVENUE: `${BASE_URL}/api/v1/dashboard/revenue`,
+  DASHBOARD_CUSTOMERS: `${BASE_URL}/api/v1/dashboard/customers`,
+  DASHBOARD_TRANSACTIONS: `${BASE_URL}/api/v1/dashboard/transactions`,
+  DASHBOARD_ORDERS: `${BASE_URL}/api/v1/dashboard/orders`,
+  DASHBOARD_TOP_PRODUCTS: `${BASE_URL}/api/v1/dashboard/top-products`,
+  DASHBOARD_TOP_CUSTOMERS: `${BASE_URL}/api/v1/dashboard/top-customers`,
+  DASHBOARD_VISITORS: `${BASE_URL}/api/v1/dashboard/visitors`,
 
   // File Upload
   UPLOAD: `${BASE_URL}/api/v1/upload`,

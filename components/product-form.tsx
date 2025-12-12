@@ -557,14 +557,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     // Pricing
     formData.append("price", data.price.toString());
-    if (data.salePrice) {
-      formData.append("salePrice", data.salePrice.toString());
-      formData.append("sale_price", data.salePrice.toString()); // legacy sync
-    }
-    formData.append("on_sale", data.onSale.toString());
+    
+    // Sale-related fields - only send when onSale is true
     if (data.onSale) {
-      if (data.saleStart) formData.append("sale_start", data.saleStart);
-      if (data.saleEnd) formData.append("sale_end", data.saleEnd);
+      // Send on_sale as true
+      formData.append("on_sale", "true");
+      
+      // Send sale price if provided
+      if (data.salePrice) {
+        formData.append("salePrice", data.salePrice.toString());
+        formData.append("sale_price", data.salePrice.toString()); // legacy sync
+      }
+      
+      // Send sale dates if provided (required when onSale is true)
+      if (data.saleStart) {
+        formData.append("sale_start", data.saleStart);
+      }
+      if (data.saleEnd) {
+        formData.append("sale_end", data.saleEnd);
+      }
+    } else {
+      // Explicitly set on_sale to false when not on sale
+      formData.append("on_sale", "false");
     }
     if (data.tax) formData.append("tax", data.tax.toString());
     
@@ -1211,7 +1225,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         Enable to set sale price and schedule.
                       </p>
                     </div>
-                    <Switch checked={onSale} onCheckedChange={setOnSale} />
+                    <Switch 
+                      checked={onSale} 
+                      onCheckedChange={(checked) => {
+                        setOnSale(checked);
+                        // Clear sale dates and sale price when toggling off
+                        if (!checked) {
+                          setSaleStart("");
+                          setSaleEnd("");
+                          setSalePrice("");
+                        }
+                      }} 
+                    />
                   </div>
 
                   {onSale && (

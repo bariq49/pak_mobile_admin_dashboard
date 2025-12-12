@@ -1,6 +1,8 @@
 // src/api/auth.api.ts
 import http from "@/utils/http";
 import { API_RESOURCES } from "@/utils/api-endpoints";
+import { getUserRoleFromToken } from "@/utils/auth";
+import { getToken } from "@/utils/get-token";
 import type { LoginFormValues } from "@/schemas/login-schema";
 
 export interface LoginResponse {
@@ -46,10 +48,37 @@ export async function loginApi(input: LoginFormValues): Promise<LoginResponse> {
   return data;
 }
 
-// Get current user
+// Get current user (for regular users)
 export async function getCurrentUserApi() {
   const { data } = await http.get(API_RESOURCES.USER);
   return data?.data.user;
+}
+
+// Get current admin (for admin users)
+export async function getCurrentAdminApi() {
+  const { data } = await http.get(API_RESOURCES.ADMIN_ME);
+  return data?.data.user;
+}
+
+// Smart fetcher that selects endpoint based on role
+export async function getCurrentUserByRoleApi(role?: string | null) {
+  // If role is provided, use it directly
+  if (role === "admin") {
+    return await getCurrentAdminApi();
+  }
+  
+  // If role is not provided, try to extract from token
+  if (!role) {
+    const token = getToken();
+    const extractedRole = getUserRoleFromToken(token);
+    
+    if (extractedRole === "admin") {
+      return await getCurrentAdminApi();
+    }
+  }
+  
+  // Default to user endpoint
+  return await getCurrentUserApi();
 }
 
 // Logout user

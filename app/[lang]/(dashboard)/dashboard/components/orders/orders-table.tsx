@@ -25,9 +25,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button"
-import { data } from "./data"
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils"
+import { useRecentOrdersQuery } from "@/hooks/api/use-dashboard-api";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Order } from "@/api/dashboard/dashboard.transformers";
 
 interface DataItem {
   invoice: string;
@@ -90,9 +92,29 @@ const OrdersTable = () => {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [page, setPage] = React.useState(1);
+
+  const { data: ordersData, isLoading, isError } = useRecentOrdersQuery(page, 10);
+
+  const formatAmount = (amount: number): string => {
+    return `$${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const orders: Order[] = ordersData?.orders || [];
+  const tableData: DataItem[] = orders.map((order) => ({
+    invoice: order.invoice || order.orderNumber,
+    username: order.username || order.customerName,
+    date: order.date || new Date(order.createdAt).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }),
+    amount: formatAmount(order.amount),
+    isComplete: order.isComplete || false,
+  }));
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -109,6 +131,25 @@ const OrdersTable = () => {
       rowSelection,
     },
   });
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-12 w-full mb-4" />
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton key={i} className="h-16 w-full mb-2" />
+        ))}
+      </div>
+    );
+  }
+
+  if (isError || tableData.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-default-600">No orders found</p>
+      </div>
+    );
+  }
 
   return (
 
@@ -178,28 +219,37 @@ const OrdersTable = () => {
 
       <div className="flex justify-center  items-center gap-2 mt-5">
         <Button
-          onClick={() => table.previousPage()}
+          onClick={() => {
+            table.previousPage();
+            if (page > 1) setPage(page - 1);
+          }}
           disabled={!table.getCanPreviousPage()}
           className="w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600"
         >
           <Icon icon="heroicons:chevron-left" className="w-3.5 h-3.5 rtl:rotate-180 " />
         </Button>
 
-        {table.getPageOptions().map((page, pageIdx) => (
+        {table.getPageOptions().map((pageOption, pageIdx) => (
           <Button
-            onClick={() => table.setPageIndex(pageIdx)}
+            onClick={() => {
+              table.setPageIndex(pageIdx);
+              setPage(pageIdx + 1);
+            }}
             key={`orders-table-${pageIdx}`}
             className={cn("w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600", {
               "bg-primary text-primary-foreground": pageIdx === table.getState().pagination.pageIndex
             })}
           >
-            {page + 1}
+            {pageOption + 1}
           </Button>
 
         ))}
 
         <Button
-          onClick={() => table.nextPage()}
+          onClick={() => {
+            table.nextPage();
+            if (ordersData && page < ordersData.pages) setPage(page + 1);
+          }}
           disabled={!table.getCanNextPage()}
           className="w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600"
         >

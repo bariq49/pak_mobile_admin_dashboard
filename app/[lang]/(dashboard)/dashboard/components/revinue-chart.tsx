@@ -5,25 +5,65 @@ import { useThemeStore } from "@/store";
 import { useTheme } from "next-themes";
 import { themes } from "@/config/thems";
 import { getGridConfig, getYAxisConfig } from "@/lib/appex-chart-options";
+import { useRevenueChartQuery } from "@/hooks/api/use-dashboard-api";
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Period } from "@/api/dashboard/dashboard.api";
+import type { RevenueDataPoint } from "@/api/dashboard/dashboard.transformers";
 
-const RevinueChart = ({ height = 350 }) => {
+interface RevinueChartProps {
+  height?: number;
+  period?: Period;
+  onPeriodChange?: (period: Period) => void;
+}
+
+const RevinueChart = ({ height = 350, period: externalPeriod, onPeriodChange }: RevinueChartProps) => {
   const { theme: config, setTheme: setConfig, isRtl } = useThemeStore();
   const { theme: mode } = useTheme();
+  const [internalPeriod, setInternalPeriod] = useState<Period>("30days");
+  const period = externalPeriod || internalPeriod;
+  const { data: revenueData, isLoading } = useRevenueChartQuery(period);
 
   const theme = themes.find((theme) => theme.name === config);
 
+  // Format data for chart
+  const formatChartData = (): { revenue: number[]; orders: number[]; categories: string[] } => {
+    if (!revenueData || !revenueData.data || revenueData.data.length === 0) {
+      return {
+        revenue: [],
+        orders: [],
+        categories: [],
+      };
+    }
+
+    const categories = revenueData.data.map((item: RevenueDataPoint) => {
+      const date = new Date(item.date);
+      if (period === "30days") {
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      } else if (period === "12months") {
+        return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      } else {
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      }
+    });
+
+    return {
+      revenue: revenueData.data.map((item: RevenueDataPoint) => item.revenue),
+      orders: revenueData.data.map((item: RevenueDataPoint) => item.orders),
+      categories,
+    };
+  };
+
+  const chartData = formatChartData();
+
   const series = [
     {
-      name: "Net Profit",
-      data: [44, 55, 41, 37, 22, 43, 21, 40, 30, 50, 60, 50],
+      name: "Revenue",
+      data: chartData.revenue,
     },
     {
       name: "Orders",
-      data: [53, 32, 33, 52, 13, 43, 32, 40, 50, 20, 40, 50],
-    },
-    {
-      name: "Return",
-      data: [40, 47, 51, 39, 35, 51, 60, 40, 60, 30, 20, 60],
+      data: chartData.orders,
     },
   ];
   const options:any = {
@@ -84,20 +124,7 @@ const RevinueChart = ({ height = 350 }) => {
       `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel})`
     ),
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "July",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: chartData.categories.length > 0 ? chartData.categories : ["No Data"],
       axisBorder: {
         show: false,
       },
@@ -138,6 +165,19 @@ const RevinueChart = ({ height = 350 }) => {
       }
     }
   };
+
+  if (isLoading) {
+    return <Skeleton className="w-full" style={{ height: `${height}px` }} />;
+  }
+
+  if (!revenueData || !revenueData.data || revenueData.data.length === 0) {
+    return (
+      <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+        <p className="text-default-600">No revenue data available</p>
+      </div>
+    );
+  }
+
   return (
       <Chart
         options={options}

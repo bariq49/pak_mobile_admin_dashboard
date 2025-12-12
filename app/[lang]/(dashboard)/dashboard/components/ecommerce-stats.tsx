@@ -3,34 +3,74 @@
 import { CupBar, NoteIcon, CheckShape, Spam } from "@/components/svg";
 import { cn } from "@/lib/utils";
 import { Icon } from "@iconify/react";
+import { useDashboardStatsQuery } from "@/hooks/api/use-dashboard-api";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { DashboardStats } from "@/api/dashboard/dashboard.transformers";
 
 const EcommerceStats = () => {
+  const { data: stats, isLoading, isError } = useDashboardStatsQuery();
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(2) + "M";
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(2) + "K";
+    }
+    return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const statsData: DashboardStats = stats || {
+    totalSales: 0,
+    todayOrders: 0,
+    completedOrders: 0,
+    pendingOrders: 0,
+  };
+
   const data = [
     {
       text: "Total Sales",
-      total: "42,750.98",
+      total: `$${formatNumber(statsData.totalSales)}`,
       color: "primary",
       icon: <CupBar className="w-3.5 h-3.5" />
     },
     {
       text: "Today Orders",
-      total: "536,23,3",
+      total: formatNumber(statsData.todayOrders),
       color: "warning",
       icon: <NoteIcon className="w-3.5 h-3.5" />
     },
     {
       text: "Completed Orders",
-      total: "234,1",
+      total: formatNumber(statsData.completedOrders),
       color: "success",
       icon: <CheckShape className="w-3.5 h-3.5" />
     },
     {
       text: "Pending Orders",
-      total: "332,34",
+      total: formatNumber(statsData.pendingOrders),
       color: "destructive",
       icon: <Spam className="w-3.5 h-3.5" />
     },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        {[1, 2, 3, 4].map((index) => (
+          <Skeleton key={`stats-skeleton-${index}`} className="h-[140px] w-full rounded-sm" />
+        ))}
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="col-span-4 text-center py-8 text-default-600">
+        Failed to load statistics. Please refresh the page.
+      </div>
+    );
+  }
   return (
     <>
       {data.map((item, index) => (

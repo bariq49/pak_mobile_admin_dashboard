@@ -4,9 +4,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Icon } from "@iconify/react";
-import { Data } from "./data"
+
 interface CustomerCardProps {
-  item: Data,
+  item: {
+    id: string;
+    name: string;
+    email: string;
+    score: number;
+    image: string;
+    color: string;
+    amount: string;
+  },
   index: number
 }
 
@@ -30,7 +38,7 @@ const CustomerCard = ({ item, index }: CustomerCardProps) => {
                 </span>
               }
               <Avatar className="h-16 w-16">
-                <AvatarImage src={image.src} />
+                <AvatarImage src={image} />
                 <AvatarFallback>{name}</AvatarFallback>
               </Avatar>
               <Badge

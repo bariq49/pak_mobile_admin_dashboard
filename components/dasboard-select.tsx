@@ -1,17 +1,24 @@
 "use client"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import type { Period } from "@/api/dashboard/dashboard.api";
 
-const DashboardSelect = () => {
+interface DashboardSelectProps {
+  value?: Period;
+  onValueChange?: (value: Period) => void;
+  defaultValue?: Period;
+}
+
+const DashboardSelect = ({ value, onValueChange, defaultValue = "30days" }: DashboardSelectProps) => {
   return (
-    <Select>
+    <Select value={value} onValueChange={onValueChange} defaultValue={defaultValue}>
       <SelectTrigger className="w-[124px]">
-        <SelectValue placeholder="Select Date" className="whitespace-nowrap" />
+        <SelectValue placeholder="Select Period" className="whitespace-nowrap" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="jan-12">Jan 12</SelectItem>
-        <SelectItem value="jan-13">Jan 13</SelectItem>
-        <SelectItem value="jan-14">Jan 14</SelectItem>
+        <SelectItem value="30days">Last 30 Days</SelectItem>
+        <SelectItem value="12months">Last 12 Months</SelectItem>
+        <SelectItem value="custom">Custom Range</SelectItem>
       </SelectContent>
     </Select>
   );

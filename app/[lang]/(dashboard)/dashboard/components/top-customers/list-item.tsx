@@ -1,10 +1,17 @@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Data } from "./data";
 
 interface CustomerCardProps {
-  item: Data,
+  item: {
+    id: string;
+    name: string;
+    email: string;
+    score: number;
+    image: string;
+    color: string;
+    amount: string;
+  },
   index: number;
 }
 
@@ -18,7 +25,7 @@ const ListItem = ({ item, index }: CustomerCardProps) => {
         <div className="flex-none flex flex-wrap items-center gap-3">
           <div className="relative inline-block">
             <Avatar>
-              <AvatarImage src={image.src} />
+              <AvatarImage src={image} />
               <AvatarFallback>{name}</AvatarFallback>
             </Avatar>
             <Badge

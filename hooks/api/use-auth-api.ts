@@ -4,11 +4,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
+import { getUserRoleFromToken } from "@/utils/auth";
+import { getToken } from "@/utils/get-token";
 import type { LoginFormValues } from "@/schemas/login-schema";
 import {
   LoginResponse,
   loginApi,
-  getCurrentUserApi,
+  getCurrentUserByRoleApi,
   logoutApi,
   updateProfileApi,
   changePasswordApi,
@@ -59,10 +61,27 @@ export const useLoginMutation = (onReset?: () => void) => {
 
 /* ============ GET CURRENT USER HOOK ============ */
 export const useGetCurrentUserQuery = (options?: { enabled?: boolean }) => {
+  const token = getToken();
+  const role = getUserRoleFromToken(token);
+
   return useQuery({
-    queryKey: ["currentUser"],
-    queryFn: getCurrentUserApi,
+    queryKey: ["currentUser", role],
+    queryFn: async () => {
+      try {
+        return await getCurrentUserByRoleApi(role);
+      } catch (error: any) {
+        // Handle 403 Forbidden errors gracefully
+        if (error?.response?.status === 403) {
+          console.error("Access forbidden: Invalid role or endpoint");
+          // Remove token and clear auth state
+          Cookies.remove("auth_token");
+        }
+        // Re-throw error so React Query can handle it
+        throw error;
+      }
+    },
     retry: 0,
+    enabled: !!token && (options?.enabled !== false),
     ...options,
   });
 };

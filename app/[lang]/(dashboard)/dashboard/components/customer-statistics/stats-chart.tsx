@@ -5,13 +5,28 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 import { useThemeStore } from "@/store";
 import { useTheme } from "next-themes";
 import { themes } from "@/config/thems";
+import { useCustomerStatisticsQuery } from "@/hooks/api/use-dashboard-api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const StatsChart = ({ height = 305 }) => {
   const { theme: config, setTheme: setConfig, isRtl } = useThemeStore();
   const { theme: mode } = useTheme();
   const theme = themes.find((theme) => theme.name === config);
+  const { data: customerStats, isLoading } = useCustomerStatisticsQuery();
 
-  const series = [900, 800, 400];
+  if (isLoading) {
+    return <Skeleton className="w-full" style={{ height: `${height}px` }} />;
+  }
+
+  // Calculate series from customer statistics
+  // Assuming we can derive gender distribution or use active/inactive/new customers
+  const series = customerStats
+    ? [
+        customerStats.activeCustomers || 0,
+        customerStats.newCustomers || 0,
+        customerStats.inactiveCustomers || 0,
+      ]
+    : [0, 0, 0];
 
   const options:any = {
     chart: {

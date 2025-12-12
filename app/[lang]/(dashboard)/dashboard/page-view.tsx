@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/provider/auth.provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DatePickerWithRange from "@/components/date-picker-with-range";
 import DashboardSelect from "@/components/dasboard-select";
+import type { Period } from "@/api/dashboard/dashboard.api";
 
 // Dashboard Components
 import EcommerceStats from "./components/ecommerce-stats";
@@ -18,6 +20,8 @@ import Products from "./components/products";
 
 const EcommercePageView = () => {
   const { user } = useAuth();
+  const [revenuePeriod, setRevenuePeriod] = useState<Period>("30days");
+  const [visitorsPeriod, setVisitorsPeriod] = useState<Period>("30days");
 
   return (
     <div className="space-y-6">
@@ -49,12 +53,12 @@ const EcommercePageView = () => {
                   Average Revenue
                 </CardTitle>
                 <div className="flex-none">
-                  <DashboardSelect />
+                  <DashboardSelect value={revenuePeriod} onValueChange={setRevenuePeriod} />
                 </div>
               </div>
             </CardHeader>
             <CardContent className="px-0">
-              <RevinueChart />
+              <RevinueChart period={revenuePeriod} onPeriodChange={setRevenuePeriod} />
             </CardContent>
           </Card>
         </div>
@@ -106,12 +110,12 @@ const EcommercePageView = () => {
                   Visitors Report
                 </CardTitle>
                 <div className="flex-none">
-                  <DashboardSelect />
+                  <DashboardSelect value={visitorsPeriod} onValueChange={setVisitorsPeriod} />
                 </div>
               </div>
             </CardHeader>
             <CardContent className="px-4 pt-0">
-              <VisitorsReportChart />
+              <VisitorsReportChart period={visitorsPeriod} onPeriodChange={setVisitorsPeriod} />
             </CardContent>
           </Card>
         </div>
