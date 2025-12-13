@@ -32,16 +32,6 @@ export const menusConfig = {
           href: "/dashboard",
           icon: Graph,
         },
-        {
-          title: "Ecommerce",
-          href: "/ecommerce",
-          icon: Cart,
-        },
-        {
-          title: "Project ",
-          href: "/project",
-          icon: ClipBoard,
-        },
       ],
     },
   ],
@@ -52,9 +42,9 @@ export const menusConfig = {
         icon: DashBoard,
         child: [
           {
-            title: "Ecommerce",
-            href: "/ecommerce",
-            icon: Cart,
+            title: "Analytics",
+            href: "/dashboard",
+            icon: Graph,
           },
         ],
       },

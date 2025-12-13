@@ -42,130 +42,18 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
             <CommandEmpty>No results found.</CommandEmpty>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <CommandGroup
-                heading="Populer Searches"
+                heading="Dashboard"
                 className="[&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:text-default-400 [&_[cmdk-group-heading]]:mb-2.5
                 [&_[cmdk-group-heading]]:uppercase    [&_[cmdk-group-heading]]:tracking-widest
                 "
               >
                 <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
                   <Link
-                    href="/calendar-page"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:calendar-days" />
-                    <span>Calendar</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
-                  <Link
                     href="/dashboard"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
                     <Icon icon="heroicons:chart-bar" />
-                    <span>Analytics</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
-                  <Link
-                    href="/ecommerce"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:shopping-bag" />
-                    <span>eCommerce</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 ">
-                  <Link
-                    href="/project"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:building-library" />
-                    <span>Project Page</span>
-                  </Link>
-                </CommandItem>
-              </CommandGroup>
-              <CommandGroup
-                heading="Apps & Pages"
-                className="[&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:text-default-400 [&_[cmdk-group-heading]]:mb-2.5
-                [&_[cmdk-group-heading]]:uppercase    [&_[cmdk-group-heading]]:tracking-widest
-                "
-              >
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
-                  <Link
-                    href="/chat"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:chat-bubble-bottom-center" />
-                    <span>Chat</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
-                  <Link
-                    href="/email"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:envelope" />
-                    <span>Email</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
-                  <Link
-                    href="/dashboard"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:user" />
-                    <span>Sign In</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0">
-                  <Link
-                    href="/calendar-page"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:chart-bar" />
-                    <span>Appex Chart</span>
-                  </Link>
-                </CommandItem>
-              </CommandGroup>
-              <CommandGroup
-                heading="UI Elements"
-                className="[&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:text-default-400 [&_[cmdk-group-heading]]:mb-2.5
-                [&_[cmdk-group-heading]]:uppercase    [&_[cmdk-group-heading]]:tracking-widest"
-              >
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
-                  <Link
-                    href="/accordion"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:bars-3" />
-                    <span>Accordion</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-1">
-                  <Link
-                    href="/checkbox"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:check" />
-                    <span>Checkboxes</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-1">
-                  <Link
-                    href="/alert"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:megaphone" />
-                    <span>Alert</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0 mb-1">
-                  <Link
-                    href="/pagination"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:document-text" />
-                    <span>Pagination</span>
+                    <span>Dashboard</span>
                   </Link>
                 </CommandItem>
               </CommandGroup>
@@ -199,15 +87,6 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                   >
                     <Icon icon="heroicons:table-cells" />
                     <span>Tanstack Table</span>
-                  </Link>
-                </CommandItem>
-                <CommandItem className="aria-selected:bg-transparent p-0">
-                  <Link
-                    href="/calendar-page"
-                    className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
-                  >
-                    <Icon icon="heroicons:clipboard-document-list" />
-                    <span>Forms</span>
                   </Link>
                 </CommandItem>
               </CommandGroup>
