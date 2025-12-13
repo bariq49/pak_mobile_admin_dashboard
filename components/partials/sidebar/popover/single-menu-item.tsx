@@ -1,22 +1,35 @@
-import { Icon } from "@iconify/react";
-
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn, isLocationMatch, translate, getDynamicPath } from "@/lib/utils";
+import { cn, isLocationMatch, getDynamicPath } from "@/lib/utils";
 
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-const SingleMenuItem = ({ item, collapsed, trans }: {
+const SingleMenuItem = ({ item, collapsed }: {
   item: any;
   collapsed: boolean;
-  trans: any
 }) => {
-  const { badge, href, title } = item;
+  const { badge, href, title, icon: Icon } = item;
 
   const pathname = usePathname();
   const locationName = getDynamicPath(pathname);
+  
+  // Handle icon - it might be a component or an object with default
+  const IconComponent = React.useMemo(() => {
+    if (!Icon) return null;
+    if (typeof Icon === 'function') return Icon;
+    if (Icon?.default && typeof Icon.default === 'function') return Icon.default;
+    if (Icon?.ReactComponent && typeof Icon.ReactComponent === 'function') return Icon.ReactComponent;
+    return null;
+  }, [Icon]);
+  
+  // Only render if IconComponent is a valid React component (function)
+  const renderIcon = (className: string) => {
+    if (!IconComponent || typeof IconComponent !== 'function') return null;
+    return <IconComponent className={className} />;
+  };
+  
   return (
     <Link href={href}>
       <>
@@ -36,7 +49,7 @@ const SingleMenuItem = ({ item, collapsed, trans }: {
                       }
                     )}
                   >
-                    <item.icon className="w-6 h-6" />
+                    {renderIcon("w-6 h-6")}
                   </span>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
@@ -45,7 +58,7 @@ const SingleMenuItem = ({ item, collapsed, trans }: {
                     className="bg-primary  text-primary-foreground data-[state=delayed-open]:data-[side=top]:animate-slideDownAndFade data-[state=delayed-open]:data-[side=right]:animate-slideLeftAndFade data-[state=delayed-open]:data-[side=left]:animate-slideRightAndFade data-[state=delayed-open]:data-[side=bottom]:animate-slideUpAndFade text-violet11 select-none rounded-[4px]  px-[15px] py-[10px] text-[15px] leading-none  shadow-sm will-change-[transform,opacity]"
                     sideOffset={5}
                   >
-                    {translate(title, trans)}
+                    {title}
                     <Tooltip.Arrow className="fill-primary" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -65,9 +78,9 @@ const SingleMenuItem = ({ item, collapsed, trans }: {
             )}
           >
             <span className="flex-grow-0">
-              <item.icon className="w-5 h-5" />
+              {renderIcon("w-5 h-5")}
             </span>
-            <div className="text-box flex-grow ">{translate(title, trans)}</div>
+            <div className="text-box flex-grow ">{title}</div>
             {badge && <Badge className=" rounded">{item.badge}</Badge>}
           </div>
         )}

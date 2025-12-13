@@ -4,14 +4,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn, isLocationMatch, translate, getDynamicPath } from "@/lib/utils";
+import { cn, isLocationMatch, getDynamicPath } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-const MultiNestedMenu = ({ subItem, subIndex, activeMultiMenu, trans }: {
+const MultiNestedMenu = ({ subItem, subIndex, activeMultiMenu }: {
   subItem: any;
   subIndex: number;
   activeMultiMenu: number | null;
-  trans: any
 }) => {
   const pathname = usePathname();
   const locationName = getDynamicPath(pathname);
@@ -47,7 +46,7 @@ const MultiNestedMenu = ({ subItem, subIndex, activeMultiMenu, trans }: {
                       }
                     )}
                   ></span>
-                  <span className="flex-1">{translate(item.title, trans)}</span>
+                  <span className="flex-1">{item.title}</span>
                 </span>
               </Link>
             </li>

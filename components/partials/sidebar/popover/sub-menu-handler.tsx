@@ -1,6 +1,7 @@
 "use client";
-import { Icon } from "@iconify/react";
-import { cn, translate } from "@/lib/utils";
+import React from "react";
+import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -13,7 +14,6 @@ const SubMenuHandler = ({
   activeSubmenu,
   collapsed,
   menuTitle,
-  trans,
 }: {
   item: any;
   toggleSubmenu: any;
@@ -21,9 +21,23 @@ const SubMenuHandler = ({
   activeSubmenu: number | null;
   collapsed: boolean;
   menuTitle?: string;
-  trans: any
 }) => {
-  const { title } = item;
+  const { title, icon: Icon } = item;
+  
+  // Handle icon - it might be a component or an object with default
+  const IconComponent = React.useMemo(() => {
+    if (!Icon) return null;
+    if (typeof Icon === 'function') return Icon;
+    if (Icon?.default && typeof Icon.default === 'function') return Icon.default;
+    if (Icon?.ReactComponent && typeof Icon.ReactComponent === 'function') return Icon.ReactComponent;
+    return null;
+  }, [Icon]);
+  
+  // Only render if IconComponent is a valid React component (function)
+  const renderIcon = (className: string) => {
+    if (!IconComponent || typeof IconComponent !== 'function') return null;
+    return <IconComponent className={className} />;
+  };
 
   return (
     <>
@@ -31,7 +45,7 @@ const SubMenuHandler = ({
         <HoverCard.Root>
           <HoverCard.Trigger asChild>
             <div className="inline-flex cursor-pointer items-center justify-center data-[state=open]:bg-primary-100 data-[state=open]:text-primary  w-12 h-12  rounded-md">
-              <item.icon className="w-6 h-6" />
+              {renderIcon("w-6 h-6")}
             </div>
           </HoverCard.Trigger>
           <HoverCard.Portal>
@@ -51,7 +65,7 @@ const SubMenuHandler = ({
                     ),
                 })}
               >
-                <CollapsedHoverMenu item={item} menuTitle={menuTitle} trans={trans} />
+                <CollapsedHoverMenu item={item} menuTitle={menuTitle} />
               </ScrollArea>
             </HoverCard.Content>
           </HoverCard.Portal>
@@ -68,9 +82,9 @@ const SubMenuHandler = ({
         >
           <div className="flex-1  gap-3 flex items-start">
             <span className="inline-flex items-center  text-lg ">
-              <item.icon className="w-5 h-5" />
+              {renderIcon("w-5 h-5")}
             </span>
-            <div className=" ">{translate(title, trans)}</div>
+            <div className=" ">{title}</div>
           </div>
           <div className="flex-0">
             <div
@@ -82,10 +96,7 @@ const SubMenuHandler = ({
                 }
               )}
             >
-              <Icon
-                icon="heroicons:chevron-right-20-solid"
-                className="h-5 w-5"
-              />
+              <ChevronRight className="h-5 w-5" />
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { themes } from "@/config/thems";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { VerticalSvg, HorizontalSvg, SemiBoxSvg } from "@/components/svg";
-import { Icon } from "@iconify/react";
+import { CheckCircle2 } from "lucide-react";
 const sidebarOptions = [
   {
     key: "module",
@@ -74,8 +74,7 @@ const SidebarChange = () => {
               )}
             >
               {sidebarType === sidebarOption.key && (
-                <Icon
-                  icon="heroicons:check-circle-20-solid"
+                <CheckCircle2
                   className=" text-[--theme-primary] absolute top-1 right-1"
                 />
               )}

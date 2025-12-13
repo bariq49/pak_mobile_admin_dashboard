@@ -1,6 +1,6 @@
 import { FC, MouseEventHandler } from "react";
 import { Button } from "@/components/ui/button";
-import { Expand } from "@/components/svg";
+import { Maximize } from "lucide-react";
 import {
   Tooltip,
   TooltipArrow,
@@ -52,7 +52,7 @@ const FullScreenToggle: FC = () => {
          data-[state=open]:bg-default-100  dark:data-[state=open]:bg-default-200
            hover:text-primary text-default-500 dark:text-default-800  rounded-full "
           >
-            <Expand className="h-5 w-5" />
+            <Maximize className="h-5 w-5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>

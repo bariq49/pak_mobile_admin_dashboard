@@ -7,7 +7,7 @@ import htmli from "@/public/images/files/html.png";
 import zipi from "@/public/images/files/zip.png";
 import figmai from "@/public/images/files/figma.png";
 import aii from "@/public/images/files/ai.png";
-import { Icon } from "@iconify/react";
+import { Download, Trash2 } from "lucide-react";
 import { type File } from "./view-files";
 function getImageSource(ext: string) {
   switch (ext) {
@@ -87,7 +87,7 @@ const SingleFileCard = ({ item }: { item: File }) => {
 
         <div className="absolute  top-3 right-3 flex gap-1.5">
           <Button size="icon" variant="outline" className=" h-6 w-6">
-            <Icon icon="heroicons:arrow-down-tray" className=" h-4 w-4  " />
+            <Download className=" h-4 w-4  " />
           </Button>
           <Button
             size="icon"
@@ -95,7 +95,7 @@ const SingleFileCard = ({ item }: { item: File }) => {
             className=" h-6 w-6"
             color="destructive"
           >
-            <Icon icon="heroicons:trash" className=" h-4 w-4  " />
+            <Trash2 className=" h-4 w-4  " />
           </Button>
         </div>
       </div>

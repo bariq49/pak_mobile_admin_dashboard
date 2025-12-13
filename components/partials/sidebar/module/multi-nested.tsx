@@ -5,7 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn, isLocationMatch, translate } from "@/lib/utils";
+import { cn, isLocationMatch } from "@/lib/utils";
 import Link from "next/link";
 
 const MultiNestedMenus = ({
@@ -13,13 +13,11 @@ const MultiNestedMenus = ({
   index,
   menus,
   locationName,
-  trans,
 }: {
   multiIndex: number | null;
   index: number;
   menus: any;
   locationName: string;
-  trans: any
 }) => {
   return (
     <Collapsible open={multiIndex === index}>
@@ -56,7 +54,7 @@ const MultiNestedMenus = ({
                         }
                       )}
                     ></span>
-                    <span>{translate(item.title, trans)}</span>
+                    <span>{item.title}</span>
                   </div>
                 </div>
               </Link>

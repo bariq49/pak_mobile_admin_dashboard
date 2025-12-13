@@ -155,19 +155,8 @@ export function getDynamicPath(pathname: any): any {
   return pathname;
 }
 
-// translate
-
-interface Translations {
-  [key: string]: string;
-}
-
-export const translate = (title: string, trans: Translations): string => {
-  const lowercaseTitle = title.toLowerCase();
-
-  if (trans?.hasOwnProperty(lowercaseTitle)) {
-    return trans[lowercaseTitle];
-  }
-
+// translate - removed translation logic, just returns title
+export const translate = (title: string, _trans?: any): string => {
   return title;
 };
 

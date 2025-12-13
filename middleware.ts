@@ -1,20 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { match } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
 import jwt from "jsonwebtoken";
-
-/* Supported Locales */
-const locales = ["en", "ar", "bn"];
-const defaultLocale = "en";
-
-/* Helper: Detect the user’s preferred language */
-function getLocale(request: NextRequest) {
-  const acceptedLanguage = request.headers.get("accept-language") ?? "";
-  const headers = { "accept-language": acceptedLanguage };
-  const languages = new Negotiator({ headers }).languages();
-  return match(languages, locales, defaultLocale);
-}
 
 /* Helper: Decode JWT safely */
 function decodeToken(token: string | undefined) {
@@ -25,28 +11,15 @@ function decodeToken(token: string | undefined) {
     return null;
   }
 }
-/* Helper: Remove locale prefix from pathname */
-function stripLocale(pathname: string) {
-  for (const locale of locales) {
-    if (pathname.startsWith(`/${locale}/`)) {
-      return pathname.replace(`/${locale}`, "");
-    }
-    if (pathname === `/${locale}`) {
-      return "/";
-    }
-  }
-  return pathname;
-}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("auth_token")?.value;
   const decoded = decodeToken(token);
 
-  const pathnameWithoutLocale = stripLocale(pathname);
-  const isAuthPage = pathnameWithoutLocale.startsWith("/auth");
-  const isDashboard = pathnameWithoutLocale.startsWith("/dashboard");
-  const isRoot = pathnameWithoutLocale === "/" || pathnameWithoutLocale === "";
+  const isAuthPage = pathname.startsWith("/auth");
+  const isDashboard = pathname.startsWith("/dashboard");
+  const isRoot = pathname === "/" || pathname === "";
 
   /* Root redirect */
   if (isRoot) {
@@ -57,16 +30,6 @@ export function middleware(request: NextRequest) {
       url.pathname = "/auth/login";
     }
     return NextResponse.redirect(url);
-  }
-
-  /* Locale redirect */
-  const pathnameIsMissingLocale = locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
-  );
-  if (pathnameIsMissingLocale) {
-    const locale = getLocale(request);
-    const newUrl = new URL(`/${locale}${pathname}`, request.url);
-    return NextResponse.redirect(newUrl);
   }
 
   /* Dashboard access protection */

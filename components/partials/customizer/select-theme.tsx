@@ -4,14 +4,13 @@ import * as React from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Icon } from "@iconify/react";
 import { themes } from "@/config/thems";
 import { useThemeStore } from "@/store";
-import { Check } from "lucide-react";
+import { Check, CheckCircle2, Sun, Moon } from "lucide-react";
 
 const allThemes = [
-  { key: "light", label: "Light", icon: "heroicons:sun" },
-  { key: "dark", label: "Dark", icon: "heroicons:moon" },
+  { key: "light", label: "Light", icon: Sun },
+  { key: "dark", label: "Dark", icon: Moon },
 ];
 
 const SelectTheme = () => {
@@ -48,13 +47,12 @@ const SelectTheme = () => {
               )}
             >
               {theme === themeOption.key && (
-                <Icon
-                  icon="heroicons:check-circle-20-solid"
+                <CheckCircle2
                   className=" text-[--theme-primary] absolute top-1 right-1"
                 />
               )}
               <div>
-                <Icon icon={themeOption.icon} className=" h-5 w-5" />
+                {React.createElement(themeOption.icon, { className: " h-5 w-5" })}
               </div>
             </button>
             <Label className=" text-muted-foreground font-normal block mt-2">

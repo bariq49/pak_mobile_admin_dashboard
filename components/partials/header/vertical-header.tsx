@@ -1,9 +1,7 @@
 import React from "react";
 import { useSidebar, useThemeStore } from "@/store";
 import { cn } from "@/lib/utils";
-import { Icon } from "@iconify/react";
 import { Search } from "lucide-react";
-import { SiteLogo } from "@/components/svg";
 import Link from "next/link";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
@@ -67,8 +65,8 @@ const VerticalHeader: React.FC<VerticalHeaderProps> = ({ handleOpenSearch }) => 
   let searchButtonContent = null;
 
   const MainLogo = (
-    <Link href="/dashboard" className=" text-primary ">
-      <SiteLogo className="h-7 w-7" />
+    <Link href="/dashboard" className=" text-primary font-bold text-lg">
+      PakMobileStore
     </Link>
   );
   const SearchButton = (

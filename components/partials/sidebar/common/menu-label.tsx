@@ -1,10 +1,9 @@
 import React from "react";
-import { cn, translate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-const MenuLabel = ({ item, className, trans }: {
+const MenuLabel = ({ item, className }: {
   item: any,
   className?: string,
-  trans: any
 }) => {
   const { title } = item;
   return (
@@ -14,7 +13,7 @@ const MenuLabel = ({ item, className, trans }: {
         className
       )}
     >
-      {translate(title, trans)}
+      {title}
     </div>
   );
 };
