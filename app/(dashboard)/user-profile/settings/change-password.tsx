@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -243,8 +243,7 @@ const ChangePassword = () => {
               Cancel
             </Button>
             <Button onClick={handleChangePassword} disabled={isPending}>
-              <Icon
-                icon="heroicons:lock-closed"
+              <Lock
                 className="w-5 h-5 text-primary-foreground me-1"
               />
               {isPending ? "Changing..." : "Change Password"}

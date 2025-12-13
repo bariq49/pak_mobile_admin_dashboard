@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { useThemeStore } from "@/store";
-import { DirectionProvider as RadixDirectionProvider } from "@radix-ui/react-direction";
 
 const DirectionProvider = ({ children }: { children: React.ReactNode }) => {
   const { isRtl } = useThemeStore();
@@ -10,9 +9,7 @@ const DirectionProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div dir={direction}>
-      <RadixDirectionProvider dir={direction}>
-        {children}
-      </RadixDirectionProvider>
+      {children}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home } from "lucide-react";
+import { Home, PenSquare } from "lucide-react";
 import coverImage from "@/public/images/all-img/user-cover.png"
 import { Button } from "@/components/ui/button";
 const SettingsHeader = () => {
@@ -22,7 +22,7 @@ const SettingsHeader = () => {
             style={{ backgroundImage: `url(${coverImage.src})` }}
           >
             <Button  className="absolute bottom-5 right-6 rounded px-5" size="sm">
-              <Icon className="w-4 h-4 mr-1" icon="heroicons:pencil-square" />
+              <PenSquare className="w-4 h-4 mr-1" />
               Change Cover
             </Button>
           </div>
