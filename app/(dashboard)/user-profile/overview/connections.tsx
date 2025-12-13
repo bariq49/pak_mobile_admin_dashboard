@@ -10,7 +10,7 @@ import avatar4 from "@/public/images/avatar/avatar-5.jpg"
 import avatar5 from "@/public/images/avatar/avatar-6.jpg"
 import avatar6 from "@/public/images/avatar/user-2.png"
 import Image, { StaticImageData } from "next/image";
-import { UserPlus } from "@/components/svg";
+import { UserPlus } from "lucide-react";
 import Link from "next/link";
 
 interface DataItemProps {

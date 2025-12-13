@@ -1,6 +1,6 @@
 "use client"
 
-import { CupBar, NoteIcon, CheckShape, Spam } from "@/components/svg";
+import { Trophy, FileText, CheckCircle, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrendingUp } from "lucide-react";
 import { useDashboardStatsQuery } from "@/hooks/api/use-dashboard-api";
@@ -32,25 +32,25 @@ const EcommerceStats = () => {
       text: "Total Sales",
       total: `$${formatNumber(statsData.totalSales)}`,
       color: "primary",
-      icon: <CupBar className="w-3.5 h-3.5" />
+      icon: <Trophy className="w-3.5 h-3.5" />
     },
     {
       text: "Today Orders",
       total: formatNumber(statsData.todayOrders),
       color: "warning",
-      icon: <NoteIcon className="w-3.5 h-3.5" />
+      icon: <FileText className="w-3.5 h-3.5" />
     },
     {
       text: "Completed Orders",
       total: formatNumber(statsData.completedOrders),
       color: "success",
-      icon: <CheckShape className="w-3.5 h-3.5" />
+      icon: <CheckCircle className="w-3.5 h-3.5" />
     },
     {
       text: "Pending Orders",
       total: formatNumber(statsData.pendingOrders),
       color: "destructive",
-      icon: <Spam className="w-3.5 h-3.5" />
+      icon: <AlertTriangle className="w-3.5 h-3.5" />
     },
   ];
 

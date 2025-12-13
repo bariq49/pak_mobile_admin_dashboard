@@ -4,30 +4,45 @@ import { cn } from "@/lib/utils";
 import { themes } from "@/config/thems";
 import { useThemeStore } from "@/store";
 import { useTheme } from "next-themes";
-import { VerticalSvg, HorizontalSvg, SemiBoxSvg } from "@/components/svg";
-
 import { CheckCircle2 } from "lucide-react";
+
+// Simple layout SVG components
+const VerticalLayout = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 60" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="25" height="50" rx="2" className="fill-default-300" />
+    <rect x="35" y="5" width="60" height="50" rx="2" className="fill-default-400" />
+  </svg>
+);
+
+const HorizontalLayout = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 60" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="90" height="15" rx="2" className="fill-default-300" />
+    <rect x="5" y="25" width="90" height="30" rx="2" className="fill-default-400" />
+  </svg>
+);
+
+const SemiBoxLayout = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 60" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="20" height="50" rx="2" className="fill-default-300" />
+    <rect x="30" y="5" width="65" height="50" rx="2" className="fill-default-400" />
+  </svg>
+);
+
 const layoutOptions = [
   {
     key: "vertical",
     label: "Vertical",
-    svg: (
-      <VerticalSvg className="[&>rect]:fill-default-300 [&>circle]:fill-default-400 [&>path]:fill-default-400" />
-    ),
+    svg: <VerticalLayout className="w-full h-full" />,
   },
   {
     key: "horizontal",
     label: "Horizontal",
-    svg: (
-      <HorizontalSvg className="[&>rect]:fill-default-300 [&>circle]:fill-default-400 [&>path]:fill-default-400" />
-    ),
+    svg: <HorizontalLayout className="w-full h-full" />,
   },
   {
     key: "semibox",
     label: "Semi-Box",
-    svg: (
-      <SemiBoxSvg className="[&>rect]:fill-default-300 [&>circle]:fill-default-400 [&>path]:fill-default-400" />
-    ),
+    svg: <SemiBoxLayout className="w-full h-full" />,
   },
 ];
 

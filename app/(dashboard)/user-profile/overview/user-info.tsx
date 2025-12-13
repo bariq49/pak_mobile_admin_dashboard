@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Location, CalenderCheck } from "@/components/svg";
+import { User, Mail, MapPin, CalendarCheck } from "lucide-react";
 import FigmaImage from "@/public/images/all-img/figma.png";
 import ReactImage from "@/public/images/all-img/react.png";
 import Image from "next/image";
@@ -34,14 +34,14 @@ const UserInfo = () => {
       value: user?.role ?? "User",
     },
     {
-      icon: Location,
+      icon: MapPin,
       label: "Location",
       value: user?.completeAddress?.trim()
         ? user.completeAddress
         : "Not Available",
     },
     {
-      icon: CalenderCheck,
+      icon: CalendarCheck,
       label: "Joining Date",
       value: user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString()

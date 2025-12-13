@@ -1,11 +1,11 @@
 
 import {
-  DashBoard,
-  Graph,
-  Cart,
-  ClipBoard,
+  LayoutDashboard,
+  BarChart,
+  ShoppingCart,
+  Clipboard,
   Flag,
-} from "@/components/svg";
+} from "lucide-react";
 
 
 export interface MenuItemProps {
@@ -25,22 +25,22 @@ export const menusConfig = {
   mainNav: [
     {
       title: "Dashboard",
-      icon: DashBoard,
+      icon: LayoutDashboard,
       child: [
         {
           title: "Analytics",
           href: "/dashboard",
-          icon: Graph,
+          icon: BarChart,
         },
         {
           title: "Ecommerce",
           href: "/ecommerce",
-          icon: Cart,
+          icon: ShoppingCart,
         },
         {
           title: "Project ",
           href: "/project",
-          icon: ClipBoard,
+          icon: Clipboard,
         },
       ],
     },
@@ -49,12 +49,12 @@ export const menusConfig = {
     modern: [
       {
         title: "Dashboard",
-        icon: DashBoard,
+        icon: LayoutDashboard,
         child: [
           {
             title: "Ecommerce",
             href: "/ecommerce",
-            icon: Cart,
+            icon: ShoppingCart,
           },
         ],
       },
@@ -67,11 +67,11 @@ export const menusConfig = {
       {
         title: "Dashboard",
         href: "/dashboard",
-        icon: DashBoard,
+        icon: LayoutDashboard,
       },
       {
         title: "Categories",
-        icon: ClipBoard,
+        icon: Clipboard,
         child: [
           {
             title: "List",
@@ -89,7 +89,7 @@ export const menusConfig = {
       },
       {
         title: "Products",
-        icon: Cart,
+        icon: ShoppingCart,
         child: [
           {
             title: "List",
