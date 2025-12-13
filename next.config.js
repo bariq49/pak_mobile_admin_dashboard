@@ -2,6 +2,7 @@
 
 
 const nextConfig = {
+  // Explicitly use webpack for SVG handling
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
@@ -29,6 +30,9 @@ const nextConfig = {
 
     return config;
   },
+  // Add empty turbopack config to silence the warning
+  // Since we're using webpack for SVG handling, we'll use --webpack flag in build script
+  turbopack: {},
   images: {
     remotePatterns: [
       {
