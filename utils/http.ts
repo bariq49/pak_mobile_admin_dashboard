@@ -1,9 +1,20 @@
 import axios from "axios";
 import { getToken, removeToken } from "./get-token";
 
+// Get base URL consistently with api-endpoints.ts
+const getBaseUrl = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!apiUrl) {
+    return "https://pak-mobile-store-backend.vercel.app";
+  }
+  // Remove trailing /api/v1 if present
+  return apiUrl.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
+};
+
+const BASE_URL = getBaseUrl();
+
 const http = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "https://pak-mobile-store-backend.vercel.app/api/v1",
+  baseURL: `${BASE_URL}/api/v1`,
   timeout: 30000,
 });
 

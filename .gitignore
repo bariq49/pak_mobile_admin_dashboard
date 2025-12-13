@@ -4,11 +4,11 @@
 /node_modules
 /.pnp
 .pnp.js
-# pnpm (ignored since we're using npm)
-.pnpm-lock.yaml
-pnpm-lock.yaml
+# pnpm lock file should be committed for consistent installs on Vercel
+# .pnpm-lock.yaml
+# pnpm-lock.yaml
 # npm - package-lock.json should be committed for consistent installs
-.env.example
+# .env.example should be committed to the repository
 # testing
 /coverage
 
