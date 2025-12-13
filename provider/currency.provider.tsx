@@ -24,7 +24,7 @@ export const CurrencyContext = createContext<CurrencyContextProps | undefined>(
 );
 
 export const CurrencyProvider = ({ children }: { children: React.ReactNode }) => {
-    const [currency, setCurrency] = useState<SupportedCurrency>("PKR");
+    const [currency, setCurrency] = useState<SupportedCurrency>("EUR");
     const [rate, setRate] = useState(1);
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<string | undefined>();
@@ -58,7 +58,7 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
         const detectedCurrency =
             localeToCurrency[locale] ||
             localeToCurrency[locale.split("-")[0]] ||
-            "PKR";
+            "EUR";
         setCurrency(detectedCurrency);
     }, []);
     useEffect(() => {

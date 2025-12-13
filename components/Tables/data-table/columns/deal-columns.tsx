@@ -95,7 +95,7 @@ export function getDealColumns({
             )}
             <div className="flex flex-col">
               <span className="font-semibold text-sm">
-                {isPercentage ? `${value}%` : `PKR ${value.toLocaleString()}`}
+                {isPercentage ? `${value}%` : `€${value.toLocaleString()}`}
               </span>
               <span className="text-xs text-muted-foreground capitalize">
                 {isFixed ? "Fixed" : "Percentage"}

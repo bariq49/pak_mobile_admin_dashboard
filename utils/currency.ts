@@ -2,7 +2,7 @@ import { SupportedCurrency } from "@/provider/currency.provider";
 
 export function formatCurrency(
   value: number,
-  currency: SupportedCurrency = "USD"
+  currency: SupportedCurrency = "EUR"
 ): string {
   return new Intl.NumberFormat("en", {
     style: "currency",

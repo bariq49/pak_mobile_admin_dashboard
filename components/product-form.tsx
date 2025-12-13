@@ -1410,7 +1410,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     Regular Price <span className="text-destructive">*</span>
                   </Label>
                   <InputGroup>
-                    <InputGroupText>PKR</InputGroupText>
+                    <InputGroupText>EUR</InputGroupText>
                     <Input
                       id="price"
                       type="number"
@@ -1429,7 +1429,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     Sale Price / Discounted Price
                   </Label>
                   <InputGroup>
-                    <InputGroupText>PKR</InputGroupText>
+                    <InputGroupText>EUR</InputGroupText>
                     <Input
                       id="salePrice"
                       type="number"
@@ -1897,7 +1897,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     {/* Price */}
                     <div className="space-y-2">
                       <Label className="text-default-600 text-sm">
-                        Price (PKR)
+                        Price (EUR)
                   </Label>
                   <Input
                         type="number"
