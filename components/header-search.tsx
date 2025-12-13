@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Icon } from "@iconify/react";
+import { Calendar, BarChart, ShoppingBag, Building, MessageCircle, Mail, User, Menu, Check, Megaphone, FileText, Table, ClipboardList } from "lucide-react";
 const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -52,7 +52,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/calendar-page"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:calendar-days" />
+                    <Calendar className="w-4 h-4" />
                     <span>Calendar</span>
                   </Link>
                 </CommandItem>
@@ -61,7 +61,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/dashboard"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:chart-bar" />
+                    <BarChart className="w-4 h-4" />
                     <span>Analytics</span>
                   </Link>
                 </CommandItem>
@@ -70,7 +70,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/ecommerce"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:shopping-bag" />
+                    <ShoppingBag className="w-4 h-4" />
                     <span>eCommerce</span>
                   </Link>
                 </CommandItem>
@@ -79,7 +79,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/project"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:building-library" />
+                    <Building className="w-4 h-4" />
                     <span>Project Page</span>
                   </Link>
                 </CommandItem>
@@ -95,7 +95,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/chat"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:chat-bubble-bottom-center" />
+                    <MessageCircle className="w-4 h-4" />
                     <span>Chat</span>
                   </Link>
                 </CommandItem>
@@ -104,7 +104,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/email"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:envelope" />
+                    <Mail className="w-4 h-4" />
                     <span>Email</span>
                   </Link>
                 </CommandItem>
@@ -113,7 +113,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/dashboard"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:user" />
+                    <User className="w-4 h-4" />
                     <span>Sign In</span>
                   </Link>
                 </CommandItem>
@@ -122,7 +122,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/calendar-page"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:chart-bar" />
+                    <BarChart className="w-4 h-4" />
                     <span>Appex Chart</span>
                   </Link>
                 </CommandItem>
@@ -137,7 +137,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/accordion"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:bars-3" />
+                    <Menu className="w-4 h-4" />
                     <span>Accordion</span>
                   </Link>
                 </CommandItem>
@@ -146,7 +146,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/checkbox"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:check" />
+                    <Check className="w-4 h-4" />
                     <span>Checkboxes</span>
                   </Link>
                 </CommandItem>
@@ -155,7 +155,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/alert"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:megaphone" />
+                    <Megaphone className="w-4 h-4" />
                     <span>Alert</span>
                   </Link>
                 </CommandItem>
@@ -164,7 +164,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/pagination"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:document-text" />
+                    <FileText className="w-4 h-4" />
                     <span>Pagination</span>
                   </Link>
                 </CommandItem>
@@ -179,7 +179,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/simple-table"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:table-cells" />
+                    <Table className="w-4 h-4" />
                     <span>Simple Table</span>
                   </Link>
                 </CommandItem>
@@ -188,7 +188,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/tailwindui-table"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:table-cells" />
+                    <Table className="w-4 h-4" />
                     <span>Tailwind Ui Table</span>
                   </Link>
                 </CommandItem>
@@ -197,7 +197,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/data-table"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:table-cells" />
+                    <Table className="w-4 h-4" />
                     <span>Tanstack Table</span>
                   </Link>
                 </CommandItem>
@@ -206,7 +206,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                     href="/calendar-page"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
-                    <Icon icon="heroicons:clipboard-document-list" />
+                    <ClipboardList className="w-4 h-4" />
                     <span>Forms</span>
                   </Link>
                 </CommandItem>

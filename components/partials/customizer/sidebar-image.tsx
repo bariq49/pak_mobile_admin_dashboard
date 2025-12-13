@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSidebar, useThemeStore } from "@/store";
-import { Check, Upload, X } from "lucide-react";
+import { Check, Upload, X, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { themes } from "@/config/thems";
-import { Icon } from "@iconify/react";
 import { useTheme } from "next-themes";
 import { hslToHex, hexToRGB } from "@/lib/utils";
 const SidebarImage = () => {
@@ -50,9 +49,9 @@ const SidebarImage = () => {
           className=" h-[72px] border border-border flex items-center justify-center rounded text-default-400"
         >
           {sidebarBg === "none" ? (
-            <Icon icon="heroicons:check" className=" h-6 w-6" />
+            <Check className=" h-6 w-6" />
           ) : (
-            <Icon icon="heroicons:x-mark" className=" h-6 w-6 " />
+            <X className=" h-6 w-6 " />
           )}
         </button>
         {selectedFiles.map((file, index) => (
@@ -73,8 +72,7 @@ const SidebarImage = () => {
             }}
           >
             {sidebarBg === file && (
-              <Icon
-                icon="heroicons:check-circle-20-solid"
+              <CheckCircle2
                 className=" text-primary-foreground  absolute  top-1/2  left-1/2 -translate-x-1/2 -translate-y-1/2"
               />
             )}
@@ -83,7 +81,7 @@ const SidebarImage = () => {
         <label className=" h-[72px] rounded border border-border bg-border  flex items-center justify-center text-muted-foreground">
           <input type="file" className="hidden" onChange={handleFileChange} />
 
-          <Icon icon="heroicons:cloud-arrow-up" className="w-5 h-5" />
+          <Upload className="w-5 h-5" />
         </label>
       </div>
     </div>

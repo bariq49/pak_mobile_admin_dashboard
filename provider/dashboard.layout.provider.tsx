@@ -7,7 +7,6 @@ import { useSidebar } from "@/store";
 import { motion } from "framer-motion";
 import Footer from "@/components/partials/footer";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import ThemeCustomize from "@/components/partials/customizer/theme-customizer";
 import MobileSidebar from "@/components/partials/sidebar/mobile-sidebar";
 import HeaderSearch from "@/components/header-search";
 import { useMounted } from "@/hooks/use-mounted";
@@ -15,10 +14,8 @@ import LayoutLoader from "@/components/layout-loader";
 
 const DashBoardLayoutProvider = ({
   children,
-  trans,
 }: {
   children: React.ReactNode;
-  trans: any;
 }) => {
   const { collapsed } = useSidebar();
   const [open, setOpen] = React.useState(false);
@@ -30,8 +27,8 @@ const DashBoardLayoutProvider = ({
   }
   return (
     <>
-      <Header handleOpenSearch={() => setOpen(true)} trans={trans} />
-      <Sidebar trans={trans} />
+      <Header handleOpenSearch={() => setOpen(true)} />
+      <Sidebar />
 
       <div
         className={cn("content-wrapper transition-all duration-150 ", {
@@ -45,7 +42,6 @@ const DashBoardLayoutProvider = ({
               isMobile={isMobile}
               setOpen={setOpen}
               open={open}
-              trans={trans}
             >
               {children}
             </LayoutWrapper>
@@ -54,7 +50,6 @@ const DashBoardLayoutProvider = ({
       </div>
 
       <Footer handleOpenSearch={() => setOpen(true)} />
-      <ThemeCustomize />
     </>
   );
 };
@@ -66,13 +61,11 @@ const LayoutWrapper = ({
   isMobile,
   setOpen,
   open,
-  trans,
 }: {
   children: React.ReactNode;
   isMobile: boolean;
   setOpen: any;
   open: boolean;
-  trans: any;
 }) => {
   return (
     <>
@@ -94,7 +87,7 @@ const LayoutWrapper = ({
         <main>{children}</main>
       </motion.div>
 
-      <MobileSidebar trans={trans} className="left-[300px]" />
+      <MobileSidebar className="left-[300px]" />
       <HeaderSearch open={open} setOpen={setOpen} />
     </>
   );

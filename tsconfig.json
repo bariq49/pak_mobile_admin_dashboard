@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowJs": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "strict": true,
     "strictNullChecks": true,
     "skipLibCheck": true,
@@ -28,7 +32,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -42,11 +48,14 @@
     "components/dasboard-select.jsx",
     "components/ui/tabs.jsx",
     "components/ui/slider.jsx",
-    "app/[lang]/not-found.js",
-    "app/[lang]/(dashboard)/(chart)/(re-chart)/charts-rechart-pie/twolevel-pie.jsx",
-    "app/[lang]/(dashboard)/(chart)/(re-chart)/charts-rechart-pie/two-simple-pie.jsx",
-    "app/[lang]/(dashboard)/(chart)/(re-chart)/charts-rechart-radialbar/basic-radial-bar.jsx",
-    "app/[lang]/(dashboard)/(chart)/(re-chart)/charts-rechart-bar/barchart-with-multixaxis.tsx"
+    "app/not-found.js",
+    "app/(dashboard)/(chart)/(re-chart)/charts-rechart-pie/twolevel-pie.jsx",
+    "app/(dashboard)/(chart)/(re-chart)/charts-rechart-pie/two-simple-pie.jsx",
+    "app/(dashboard)/(chart)/(re-chart)/charts-rechart-radialbar/basic-radial-bar.jsx",
+    "app/(dashboard)/(chart)/(re-chart)/charts-rechart-bar/barchart-with-multixaxis.tsx",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

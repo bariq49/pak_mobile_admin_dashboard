@@ -4,7 +4,6 @@ import * as React from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Icon } from "@iconify/react";
 
 import { useThemeStore } from "@/store";
 import { useRouter, usePathname } from "next/navigation";
@@ -15,11 +14,7 @@ const RtlSwitcher = () => {
   const pathname = usePathname();
 
   const handleDirectionChange = (rtl: boolean) => {
-    if (pathname) {
-      const lang = rtl ? "ar" : "en";
       setRtl(rtl);
-      router.push(`/${lang}/${pathname.split("/")[2]}`);
-    }
   };
 
   return (

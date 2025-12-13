@@ -18,7 +18,6 @@ const NestedSubMenu = ({
   activeMultiMenu,
   toggleMultiMenu,
   title,
-  trans,
 }: {
   activeSubmenu: number | null;
   item: any;
@@ -26,7 +25,6 @@ const NestedSubMenu = ({
   activeMultiMenu: number | null;
   toggleMultiMenu: (index: number) => void;
   title?: string;
-  trans: any
 }) => {
   const pathname = usePathname();
   const locationName = getDynamicPath(pathname);
@@ -53,17 +51,15 @@ const NestedSubMenu = ({
                     subIndex={j}
                     activeMultiMenu={activeMultiMenu}
                     toggleMultiMenu={toggleMultiMenu}
-                    trans={trans}
                   />
                   <MultiNestedMenu
                     subItem={subItem}
                     subIndex={j}
                     activeMultiMenu={activeMultiMenu}
-                    trans={trans}
                   />
                 </div>
               ) : (
-                <SubMenuItem subItem={subItem} trans={trans} />
+                <SubMenuItem subItem={subItem} />
               )}
             </li>
           ))}

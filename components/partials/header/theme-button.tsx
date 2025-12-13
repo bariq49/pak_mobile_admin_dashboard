@@ -9,8 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Device, Moon, Sun } from "@/components/svg";
-import { Check } from "lucide-react";
+import { Check, Sun, Moon, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ThemeButton = () => {

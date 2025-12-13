@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import SingleMenuItem from "./single-menu-item";
 import SubMenuHandler from "./sub-menu-handler";
 import NestedSubMenu from "../common/nested-menus";
-const MobileSidebar = ({ className, trans }: { className?: string, trans: any }) => {
+const MobileSidebar = ({ className }: { className?: string }) => {
   const { sidebarBg, mobileMenu, setMobileMenu } = useSidebar();
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null);
   const [activeMultiMenu, setMultiMenu] = useState<number | null>(null);
@@ -100,7 +100,7 @@ const MobileSidebar = ({ className, trans }: { className?: string, trans: any })
 
                 {/* menu label */}
                 {item.isHeader && !item.child && !collapsed && (
-                  <MenuLabel item={item} trans={trans} />
+                  <MenuLabel item={item} />
                 )}
 
                 {/* sub menu */}
@@ -120,7 +120,7 @@ const MobileSidebar = ({ className, trans }: { className?: string, trans: any })
                         activeMultiMenu={activeMultiMenu}
                         activeSubmenu={activeSubmenu}
                         item={item}
-                        index={i} title={""} trans={undefined} />
+                        index={i} />
                     )}
                   </>
                 )}

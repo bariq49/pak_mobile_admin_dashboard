@@ -38,10 +38,8 @@ const NavTools = ({
 
 const Header = ({
   handleOpenSearch,
-  trans,
 }: {
   handleOpenSearch: () => void;
-  trans: string;
 }) => {
   const { collapsed, sidebarType } = useSidebar();
   const isDesktop = useMediaQuery("(min-width: 1280px)");

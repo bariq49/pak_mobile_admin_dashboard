@@ -1,16 +1,31 @@
 import React from "react";
-import { cn, isLocationMatch, translate } from "@/lib/utils";
+import { cn, isLocationMatch } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useThemeStore } from "@/store";
 
-function NavLink({ childItem, locationName, trans }: {
+function NavLink({ childItem, locationName }: {
   childItem: any;
   locationName: string;
-  trans: any
 }) {
-  const { href, icon, title, badge } = childItem;
+  const { href, icon: Icon, title, badge } = childItem;
+  
+  // Handle icon - it might be a component or an object with default
+  const IconComponent = React.useMemo(() => {
+    if (!Icon) return null;
+    if (typeof Icon === 'function') return Icon;
+    if (Icon?.default && typeof Icon.default === 'function') return Icon.default;
+    if (Icon?.ReactComponent && typeof Icon.ReactComponent === 'function') return Icon.ReactComponent;
+    return null;
+  }, [Icon]);
+  
+  // Only render if IconComponent is a valid React component (function)
+  const renderIcon = (className: string) => {
+    if (!IconComponent || typeof IconComponent !== 'function') return null;
+    return <IconComponent className={className} />;
+  };
+  
   return (
     <Link
       href={href}
@@ -25,12 +40,12 @@ function NavLink({ childItem, locationName, trans }: {
         }
       )}
     >
-      {icon && (
+      {IconComponent && (
         <span className="inline-flex items-center   flex-grow-0">
-          <childItem.icon className=" h-5 w-5" />
+          {renderIcon("h-5 w-5")}
         </span>
       )}
-      <div className="flex-grow truncate">{translate(title, trans)}</div>
+      <div className="flex-grow truncate">{title}</div>
       {badge && <Badge className="rounded h-min ">{badge}</Badge>}
     </Link>
   );
@@ -42,17 +57,31 @@ const MenuItem = ({
   nestedIndex,
   index,
   locationName,
-  trans,
 }: {
   childItem: any;
   toggleNested: (subIndex: number) => void;
   nestedIndex: number | null;
   index: number;
   locationName: string;
-  trans: any;
 }) => {
-  const { icon, title } = childItem;
+  const { icon: Icon, title } = childItem;
   const { isRtl } = useThemeStore();
+  
+  // Handle icon - it might be a component or an object with default
+  const IconComponent = React.useMemo(() => {
+    if (!Icon) return null;
+    if (typeof Icon === 'function') return Icon;
+    if (Icon?.default && typeof Icon.default === 'function') return Icon.default;
+    if (Icon?.ReactComponent && typeof Icon.ReactComponent === 'function') return Icon.ReactComponent;
+    return null;
+  }, [Icon]);
+  
+  // Only render if IconComponent is a valid React component (function)
+  const renderIcon = (className: string) => {
+    if (!IconComponent || typeof IconComponent !== 'function') return null;
+    return <IconComponent className={className} />;
+  };
+  
   return (
     <div>
       {childItem?.nested ? (
@@ -69,10 +98,10 @@ const MenuItem = ({
             onClick={() => toggleNested(index)}
           >
             <span className="inline-flex items-center  flex-grow-0">
-              <childItem.icon className=" h-5 w-5" />
+              {renderIcon("h-5 w-5")}
             </span>
             <span className="flex-grow truncate">
-              {translate(title, trans)}
+              {title}
             </span>
           </div>
           {childItem.nested && (
@@ -98,7 +127,6 @@ const MenuItem = ({
           <NavLink
             childItem={childItem}
             locationName={locationName}
-            trans={trans}
           />
         </div>
       )}

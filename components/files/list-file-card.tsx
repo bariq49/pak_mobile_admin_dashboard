@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Icon } from "@iconify/react";
+import { Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -124,10 +124,7 @@ const ListFileCard = ({ files }: { files: File[] }) => {
                     variant="outline"
                     className=" h-7 w-7"
                   >
-                    <Icon
-                      icon="heroicons:arrow-down-tray"
-                      className=" h-4 w-4  "
-                    />
+                    <Download className=" h-4 w-4  " />
                   </Button>
                   <Button
                     size="icon"
@@ -135,7 +132,7 @@ const ListFileCard = ({ files }: { files: File[] }) => {
                     className=" h-7 w-7"
                     color="destructive"
                   >
-                    <Icon icon="heroicons:trash" className=" h-4 w-4  " />
+                    <Trash2 className=" h-4 w-4  " />
                   </Button>
                 </div>
               </TableCell>

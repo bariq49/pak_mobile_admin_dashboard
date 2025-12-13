@@ -1,6 +1,6 @@
 "use client";
-import { Icon } from "@iconify/react";
-import { cn, translate } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import React from "react";
 
 const MultiMenuHandler = ({
@@ -9,14 +9,12 @@ const MultiMenuHandler = ({
   activeMultiMenu,
   toggleMultiMenu,
   className,
-  trans,
 }: {
   subItem: any,
   subIndex: number,
   activeMultiMenu: number | null,
   toggleMultiMenu: (subIndex: number) => void,
   className?: string,
-  trans: any
 }) => {
   return (
     <div
@@ -31,7 +29,7 @@ const MultiMenuHandler = ({
         }
       )}
     >
-      <span className="flex-1">{translate(subItem.title, trans)}</span>
+      <span className="flex-1">{subItem.title}</span>
       <div className="flex-none">
         <span
           className={cn(
@@ -41,7 +39,7 @@ const MultiMenuHandler = ({
             }
           )}
         >
-          <Icon icon="heroicons:chevron-right-20-solid" className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5" />
         </span>
       </div>
     </div>

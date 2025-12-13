@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { cn, isLocationMatch, getDynamicPath, translate } from "@/lib/utils";
+import { cn, isLocationMatch, getDynamicPath } from "@/lib/utils";
 import { menusConfig, ModernNavType, } from "@/config/menus";
 import SingleIconMenu from "./single-icon-menu";
 import { useRouter, usePathname } from "next/navigation";
@@ -9,7 +9,6 @@ import NestedMenus from "./nested-menus";
 import Image from "next/image";
 import Link from "next/link";
 import FooterMenu from "./footer-menu";
-import { SiteLogo } from "@/components/svg";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import LogoutFooter from "./logout-footer";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -17,7 +16,7 @@ import MenuOverlayPortal from "./MenuOverlayPortal";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const ModuleSidebar = ({ trans }: { trans: any }) => {
+const ModuleSidebar = () => {
   const menus = menusConfig?.sidebarNav?.modern || [];
   const { subMenu, setSubmenu, collapsed, setCollapsed, sidebarBg } =
     useSidebar();
@@ -158,8 +157,8 @@ const ModuleSidebar = ({ trans }: { trans: any }) => {
           )}
         >
           <div className=" pt-4 ">
-            <Link href="/dashboard">
-              <SiteLogo className=" mx-auto text-primary h-8 w-8" />
+            <Link href="/dashboard" className="text-center block">
+              <span className="text-lg font-bold text-primary">PakMobileStore</span>
             </Link>
           </div>
           {/* end logo */}
@@ -175,7 +174,6 @@ const ModuleSidebar = ({ trans }: { trans: any }) => {
                   activeIndex={activeIndex}
                   item={item}
                   locationName={locationName}
-                  trans={trans}
                 />
               </div>
             ))}
@@ -200,7 +198,7 @@ const ModuleSidebar = ({ trans }: { trans: any }) => {
             ></div>
           )}
           <h2 className="text-lg  bg-transparent   z-50   font-semibold  flex gap-4 items-center   text-default-700 sticky top-0 py-4  px-4   capitalize ">
-            <span className=" block ">{translate(getMenuTitle(), trans)}</span>
+            <span className=" block ">{getMenuTitle()}</span>
             {!isDesktop && (
               <Button
                 size="icon"
@@ -222,7 +220,6 @@ const ModuleSidebar = ({ trans }: { trans: any }) => {
                 {currentSubMenu?.map((childItem, j) => (
                   <li key={j} className="mb-1.5 last:mb-0">
                     <MenuItem
-                      trans={trans}
                       childItem={childItem}
                       toggleNested={toggleNested}
                       index={j}
@@ -236,7 +233,6 @@ const ModuleSidebar = ({ trans }: { trans: any }) => {
                       locationName={locationName}
                       toggleMulti={toggleMultiNested}
                       multiIndex={multiNestedIndex}
-                      trans={trans}
                     />
                   </li>
                 ))}

@@ -6,11 +6,10 @@ import MultiNestedMenu from "../common/multi-nested-menu";
 import { cn, isLocationMatch, getDynamicPath } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
-const CollapsedHoverMenu = ({ item, menuTitle, trans }: {
+const CollapsedHoverMenu = ({ item, menuTitle }: {
   item: any;
 
   menuTitle?: string
-  trans: any
 }) => {
   const [activeMultiMenu, setMultiMenu] = useState<number | null>(null);
 
@@ -24,12 +23,29 @@ const CollapsedHoverMenu = ({ item, menuTitle, trans }: {
 
   const pathname = usePathname();
   const locationName = getDynamicPath(pathname);
+  
+  // Handle icon - it might be a component or an object with default
+  const IconComponent = React.useMemo(() => {
+    const Icon = item?.icon;
+    if (!Icon) return null;
+    if (typeof Icon === 'function') return Icon;
+    if (Icon?.default && typeof Icon.default === 'function') return Icon.default;
+    if (Icon?.ReactComponent && typeof Icon.ReactComponent === 'function') return Icon.ReactComponent;
+    return null;
+  }, [item?.icon]);
+  
+  // Only render if IconComponent is a valid React component (function)
+  const renderIcon = (className: string) => {
+    if (!IconComponent || typeof IconComponent !== 'function') return null;
+    return <IconComponent className={className} />;
+  };
+  
   return (
     <>
       {item?.child ? (
         <ul className="space-y-2 relative before:absolute before:left-4 before:top-0  before:h-[calc(100%-5px)]  before:w-[2px] before:bg-primary/20 before:rounded">
           <li className=" text-primary-foreground bg-primary font-medium px-3 py-3 rounded  relative flex items-center gap-3 ">
-            <item.icon className="h-5 w-5 " />
+            {renderIcon("h-5 w-5")}
             {menuTitle}
           </li>
           {item.child?.map((subItem: any, j: number) => (
@@ -51,19 +67,17 @@ const CollapsedHoverMenu = ({ item, menuTitle, trans }: {
                     activeMultiMenu={activeMultiMenu}
                     toggleMultiMenu={toggleMultiMenu}
                     className="before:-left-6"
-                    trans={trans}
                   />
                   <div className="pl-3">
                     <MultiNestedMenu
                       subItem={subItem}
                       subIndex={j}
                       activeMultiMenu={activeMultiMenu}
-                      trans={trans}
                     />
                   </div>
                 </div>
               ) : (
-                <SubMenuItem subItem={subItem} trans={trans} />
+                <SubMenuItem subItem={subItem} />
               )}
             </li>
           ))}

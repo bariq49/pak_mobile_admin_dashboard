@@ -6,7 +6,7 @@ import { useThemeStore } from "@/store";
 import { useTheme } from "next-themes";
 import { VerticalSvg, HorizontalSvg, SemiBoxSvg } from "@/components/svg";
 
-import { Icon } from "@iconify/react";
+import { CheckCircle2 } from "lucide-react";
 const layoutOptions = [
   {
     key: "vertical",
@@ -64,8 +64,7 @@ const SelectLayout = () => {
               })}
             >
               {layout === layoutOption.key && (
-                <Icon
-                  icon="heroicons:check-circle-20-solid"
+                <CheckCircle2
                   className=" text-[--theme-primary] absolute top-1 right-1"
                 />
               )}

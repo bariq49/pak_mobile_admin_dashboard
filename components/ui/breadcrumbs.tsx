@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Icon } from "@iconify/react";
+import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -89,7 +89,7 @@ const Breadcrumbs = React.forwardRef<HTMLOListElement, BreadcrumbsProps>(
       color,
       size,
       disabled,
-      separator = <Icon icon="heroicons:chevron-right" className="rtl:rotate-180" />,
+      separator = <ChevronRight className="rtl:rotate-180 h-4 w-4" />,
       variant,
       underline,
       renderEllipsis,
@@ -150,7 +150,7 @@ const Breadcrumbs = React.forwardRef<HTMLOListElement, BreadcrumbsProps>(
                       {separator ? (
                         separator
                       ) : (
-                        <Icon icon="heroicons:chevron-right" />
+                        <ChevronRight className="h-4 w-4" />
                       )}
                     </span>
                   </div>
@@ -162,13 +162,13 @@ const Breadcrumbs = React.forwardRef<HTMLOListElement, BreadcrumbsProps>(
                     )}
                   >
                     <span>
-                      <Icon icon="heroicons:ellipsis-horizontal" />
+                      <MoreHorizontal className="h-4 w-4" />
                     </span>
                     <span className="separator px-1 self-center">
                       {separator ? (
                         separator
                       ) : (
-                        <Icon icon="heroicons:chevron-right" />
+                        <ChevronRight className="h-4 w-4" />
                       )}
                     </span>
                   </div>
