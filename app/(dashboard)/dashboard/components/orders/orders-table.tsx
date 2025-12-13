@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useRecentOrdersQuery } from "@/hooks/api/use-dashboard-api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Order } from "@/api/dashboard/dashboard.transformers";
 
 interface DataItem {
@@ -225,7 +226,7 @@ const OrdersTable = () => {
           disabled={!table.getCanPreviousPage()}
           className="w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600"
         >
-          <Icon icon="heroicons:chevron-left" className="w-3.5 h-3.5 rtl:rotate-180 " />
+          <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
         </Button>
 
         {table.getPageOptions().map((pageOption, pageIdx) => (
@@ -252,7 +253,7 @@ const OrdersTable = () => {
           disabled={!table.getCanNextPage()}
           className="w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600"
         >
-          <Icon icon="heroicons:chevron-right" className="w-3.5 h-3.5 rtl:rotate-180" />
+          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
         </Button>
       </div >
     </>

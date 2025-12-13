@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { Crown } from "lucide-react";
 
 interface CustomerCardProps {
   item: {
@@ -33,7 +34,7 @@ const CustomerCard = ({ item, index }: CustomerCardProps) => {
             <div className="relative inline-block ring ring-yellow-400 rounded-full">
               {index === 1 &&
                 <span className="absolute -top-[29px] left-1/2 -translate-x-1/2  ">
-                  <Icon icon="ph:crown-simple-fill" className="h-10 w-10 text-yellow-400" />
+                  <Crown className="h-10 w-10 text-yellow-400 fill-yellow-400" />
                 </span>
               }
               <Avatar className="h-16 w-16">
