@@ -1,4 +1,15 @@
-const BASE_URL = "https://pak-mobile-store-backend.vercel.app";
+// Use environment variable or fallback to default API URL
+// Extract base URL from NEXT_PUBLIC_API_BASE_URL (removes /api/v1 if present)
+const getBaseUrl = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!apiUrl) {
+    return "https://pak-mobile-store-backend.vercel.app";
+  }
+  // Remove trailing /api/v1 if present
+  return apiUrl.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
+};
+
+const BASE_URL = getBaseUrl();
 
 export const API_RESOURCES = {
   // User & Auth
