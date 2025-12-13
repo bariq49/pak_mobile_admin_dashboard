@@ -2,6 +2,7 @@
   "name": "xalvion-admin",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@9.12.0",
   "engines": {
     "node": ">=18.0.0"
   },
