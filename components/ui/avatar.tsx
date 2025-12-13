@@ -1,8 +1,12 @@
 "use client"
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import { faker } from "@faker-js/faker";
 import { cn } from "@/lib/utils";
+
+// Simple UUID generator
+const generateUUID = () => {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+};
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -42,7 +46,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
         {...props}
       >
         {avatars.slice(0, max).map((avatar, index) => (
-          <React.Fragment key={`avatar-group-key-${faker.string.uuid()}`}>{avatar}</React.Fragment>
+          <React.Fragment key={`avatar-group-key-${index}-${generateUUID()}`}>{avatar}</React.Fragment>
         ))}
         {avatars.length > max && (
           <>
