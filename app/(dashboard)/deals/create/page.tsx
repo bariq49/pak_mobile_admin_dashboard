@@ -60,44 +60,48 @@ const CreateDealPage = () => {
     const formData = new FormData();
 
     // Basic Info
-    formData.append("title", data.title);
+    formData.append("title", data.title || "");
     if (data.description) formData.append("description", data.description);
     if (data.btnText) formData.append("btnText", data.btnText);
 
     // Target Selection
-    formData.append("isGlobal", data.isGlobal.toString());
+    formData.append("isGlobal", data.isGlobal ? "true" : "false");
     
-    // Only append specific targets if not global
-    if (!data.isGlobal) {
-      if (data.products && data.products.length > 0) {
-        formData.append("products", JSON.stringify(data.products));
-      }
-      if (data.categories && data.categories.length > 0) {
-        formData.append("categories", JSON.stringify(data.categories));
-      }
-      if (data.subCategories && data.subCategories.length > 0) {
-        formData.append("subCategories", JSON.stringify(data.subCategories));
-      }
-    }
+    // Ensure arrays are always arrays (defensive)
+    const productsArray = Array.isArray(data.products) ? data.products : [];
+    const categoriesArray = Array.isArray(data.categories) ? data.categories : [];
+    const subCategoriesArray = Array.isArray(data.subCategories) ? data.subCategories : [];
+    
+    // Send arrays properly - append each item individually
+    // Backend will receive them as arrays automatically
+    productsArray.forEach((productId) => {
+      formData.append("products[]", productId);
+    });
+    
+    categoriesArray.forEach((categoryId) => {
+      formData.append("categories[]", categoryId);
+    });
+    
+    subCategoriesArray.forEach((subCategoryId) => {
+      formData.append("subCategories[]", subCategoryId);
+    });
 
     // Discount Details
-    formData.append("discountType", data.discountType);
-    formData.append("discountValue", data.discountValue);
+    formData.append("discountType", data.discountType || "percentage");
+    formData.append("discountValue", data.discountValue || "0");
 
     // Time Window
-    formData.append("startDate", data.startDate);
-    formData.append("endDate", data.endDate);
+    formData.append("startDate", data.startDate || "");
+    formData.append("endDate", data.endDate || "");
 
     // Priority
-    if (data.priority) {
-      formData.append("priority", data.priority);
-    }
+    formData.append("priority", data.priority || "1");
 
-    // Images - desktop and mobile
-    if (data.desktopImageFile) {
+    // Images - desktop and mobile (only append if files exist)
+    if (data.desktopImageFile && data.desktopImageFile instanceof File) {
       formData.append("desktop", data.desktopImageFile);
     }
-    if (data.mobileImageFile) {
+    if (data.mobileImageFile && data.mobileImageFile instanceof File) {
       formData.append("mobile", data.mobileImageFile);
     }
 
@@ -132,12 +136,21 @@ const CreateDealPage = () => {
       // Build FormData
       const formData = buildFormData(data);
 
+      // Debug: Log FormData contents (for troubleshooting)
+      console.log("=== Deal FormData Debug ===");
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: [File] ${value.name} (${value.size} bytes)`);
+        } else {
+          console.log(`${key}:`, value);
+        }
+      }
+      console.log("===========================");
+
       // Send as multipart/form-data
+      // NOTE: Do NOT set Content-Type header manually - browser sets it automatically with boundary
       await http.post(API_RESOURCES.DEALS, formData, {
         timeout: 120000,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
       });
 
       // Success
@@ -201,11 +214,9 @@ const CreateDealPage = () => {
       const formData = buildFormData(data);
 
       // Send as multipart/form-data
+      // NOTE: Do NOT set Content-Type header manually - browser sets it automatically with boundary
       await http.post(API_RESOURCES.DEALS, formData, {
         timeout: 120000,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
       });
 
       // Success
