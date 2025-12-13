@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
 
-/* Helper: Decode JWT safely */
+/* Helper: Decode JWT safely (Edge runtime compatible) */
 function decodeToken(token: string | undefined) {
   if (!token) return null;
   try {
-    return jwt.decode(token) as { role?: string } | null;
+    // JWT structure: header.payload.signature
+    // We only need to decode the payload (middle part)
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    // Decode base64url encoded payload
+    const payload = parts[1];
+    // Replace URL-safe base64 characters
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    // Add padding if needed
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    
+    // Decode using atob (available in Edge runtime)
+    const decoded = atob(padded);
+    return JSON.parse(decoded) as { role?: string } | null;
   } catch {
     return null;
   }
