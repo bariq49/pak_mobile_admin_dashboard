@@ -279,6 +279,24 @@ const ProductForm: React.FC<ProductFormProps> = ({
     fetchCategories();
   }, []);
 
+  // Validate and clear invalid subcategory when category changes or categories are loaded
+  useEffect(() => {
+    if (category && subCategory && categories.length > 0) {
+      if (!validateSubcategory(category, subCategory)) {
+        // Subcategory doesn't belong to selected category - clear it
+        console.warn("Subcategory validation: clearing invalid subcategory that doesn't belong to selected category");
+        setSubCategory("");
+        // Only show toast if we're not in the initial load (to avoid spam during edit mode initialization)
+        if (mode === "create" || (mode === "edit" && !isFetchingProduct)) {
+          toast.warning("Subcategory cleared", {
+            description: "The selected subcategory does not belong to the selected category.",
+          });
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, categories, mode, isFetchingProduct]);
+
   // Fetch product data in edit mode and initialize store
   useEffect(() => {
     const fetchProduct = async () => {
@@ -437,42 +455,115 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Tag input state (local UI state, not stored in global store)
   const [tagInput, setTagInput] = useState("");
 
+  // Helper function to validate subcategory belongs to category
+  // This validates against the loaded categories structure (client-side validation)
+  const validateSubcategory = (categoryId: string, subcategoryId: string): boolean => {
+    if (!categoryId || !subcategoryId || categories.length === 0) {
+      return false;
+    }
+    
+    const selectedCategory = categories.find(cat => cat._id === categoryId);
+    if (!selectedCategory) {
+      return false;
+    }
+    
+    // Check if subcategory exists in the category's children array
+    const subcategoryExists = selectedCategory.children?.some(
+      (child: Category) => child._id === subcategoryId
+    );
+    
+    return subcategoryExists || false;
+  };
+
+  // Enhanced validation: Verify subcategory exists and belongs to parent
+  // This provides better error messages that match backend validation
+  const validateSubcategoryWithDetails = (categoryId: string, subcategoryInput: string): {
+    isValid: boolean;
+    error?: string;
+  } => {
+    if (!categoryId) {
+      return { isValid: false, error: "Category is required" };
+    }
+
+    if (!subcategoryInput) {
+      return { isValid: true }; // Subcategory is optional
+    }
+
+    if (categories.length === 0) {
+      return { isValid: false, error: "Categories not loaded. Please refresh the page." };
+    }
+
+    const selectedCategory = categories.find(cat => cat._id === categoryId);
+    if (!selectedCategory) {
+      return { isValid: false, error: "Selected category is not available. Please reselect." };
+    }
+
+    // Check if subcategory exists in the category's children
+    const subcategory = selectedCategory.children?.find(
+      (child: Category) => 
+        child._id === subcategoryInput || 
+        child.slug === subcategoryInput || 
+        child.name.toLowerCase() === subcategoryInput.toLowerCase()
+    );
+
+    if (!subcategory) {
+      return { 
+        isValid: false, 
+        error: `Subcategory "${subcategoryInput}" not found in category "${selectedCategory.name}". Please provide a valid sub-category ID, name, or slug.`
+      };
+    }
+
+    // Verify parent relationship (double-check)
+    const parentId = typeof subcategory.parent === 'string' 
+      ? subcategory.parent 
+      : (subcategory.parent as any)?._id || null;
+
+    if (parentId !== categoryId) {
+      return { 
+        isValid: false, 
+        error: `Subcategory "${subcategory.name}" does not belong to category "${selectedCategory.name}". Please select a valid subcategory.`
+      };
+    }
+
+    return { isValid: true };
+  };
+
   // Collect form data from store - quantity and variant.stock are kept completely separate
   // Main quantity is independent from variant stock
   const collectFormData = (): ProductFormData => {
     return {
-      name,
-      brand,
-      model,
-      sku,
-      category,
-      subCategory,
-      tags,
-      condition,
-      price: parseFloat(price) || 0,
-      salePrice: parseFloat(salePrice) || 0,
-      onSale,
-      saleStart,
-      saleEnd,
-      tax: parseFloat(tax) || 0,
-      quantity: parseInt(quantity) || 0, // Main product quantity, separate from variant stock
-      featuredImage,
-      featuredImageFile,
-      galleryImages,
-      galleryImageFiles,
-      videoUrl,
-      variants: variants.map(v => ({
+      name: name || "",
+      brand: brand || "",
+      model: model || "",
+      sku: sku || "",
+      category: category || "",
+      subCategory: subCategory || "",
+      tags: tags || [],
+      condition: condition || "new",
+      price: price ? (typeof price === 'number' ? price : parseFloat(String(price)) || 0) : 0,
+      salePrice: salePrice ? (typeof salePrice === 'number' ? salePrice : parseFloat(String(salePrice)) || 0) : 0,
+      onSale: Boolean(onSale),
+      saleStart: saleStart || "",
+      saleEnd: saleEnd || "",
+      tax: tax ? (typeof tax === 'number' ? tax : parseFloat(String(tax)) || 0) : 0,
+      quantity: quantity ? (typeof quantity === 'number' ? quantity : parseInt(String(quantity)) || 0) : 0, // Main product quantity, separate from variant stock
+      featuredImage: featuredImage || "",
+      featuredImageFile: featuredImageFile || null,
+      galleryImages: galleryImages || [],
+      galleryImageFiles: galleryImageFiles || [],
+      videoUrl: videoUrl || "",
+      variants: (variants || []).map(v => ({
         ...v,
         // Include the file reference for upload
         imageFile: variantImageFiles.current[v.id] || null,
       })) as Variant[],
-      additionalInfo,
-      description,
-      whatsInBox,
-      status,
-      featured,
-      visibility,
-      publishDate,
+      additionalInfo: additionalInfo || [],
+      description: description || "",
+      whatsInBox: whatsInBox || "",
+      status: status || "draft",
+      featured: Boolean(featured),
+      visibility: visibility || "visible",
+      publishDate: publishDate || "",
     };
   };
 
@@ -507,6 +598,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     if (!data.category?.trim()) {
       errors.category = "Category is required";
+    }
+
+    // Validate subcategory belongs to selected category (with detailed error message)
+    if (data.subCategory && data.category) {
+      const subcategoryValidation = validateSubcategoryWithDetails(data.category, data.subCategory);
+      if (!subcategoryValidation.isValid) {
+        errors.category = subcategoryValidation.error || "Invalid subcategory selected. Please reselect.";
+      }
     }
 
     // Pricing validation
@@ -547,7 +646,36 @@ const ProductForm: React.FC<ProductFormProps> = ({
     formData.append("model", data.model);
     if (data.sku) formData.append("sku", data.sku);
     formData.append("category", data.category);
-    if (data.subCategory) formData.append("subCategory", data.subCategory);
+    
+    // Only append subCategory if it's valid and belongs to the selected category
+    // Backend now validates: subcategory must exist AND parent must match category
+    // We support: ID, name, or slug for subcategory input
+    if (data.subCategory && data.category) {
+      const subcategoryValidation = validateSubcategoryWithDetails(data.category, data.subCategory);
+      if (subcategoryValidation.isValid) {
+        // Find the actual subcategory to get its ID (in case user provided name or slug)
+        const selectedCategory = categories.find(cat => cat._id === data.category);
+        const subcategory = selectedCategory?.children?.find(
+          (child: Category) => 
+            child._id === data.subCategory || 
+            child.slug === data.subCategory || 
+            child.name.toLowerCase() === data.subCategory.toLowerCase()
+        );
+        
+        // Send the subcategory ID (backend expects ID, name, or slug - ID is most reliable)
+        if (subcategory) {
+          formData.append("subCategory", subcategory._id);
+        } else {
+          // Fallback: send as-is (might be ID, name, or slug - backend will handle)
+          formData.append("subCategory", data.subCategory);
+        }
+      } else {
+        // Subcategory validation failed - don't send it
+        console.warn("Subcategory validation failed:", subcategoryValidation.error);
+        // Don't append subCategory to prevent backend error
+      }
+    }
+    
     formData.append("condition", data.condition || "new");
 
     // Tags (as JSON array)
@@ -555,32 +683,39 @@ const ProductForm: React.FC<ProductFormProps> = ({
       formData.append("tags", JSON.stringify(data.tags));
     }
 
-    // Pricing
-    formData.append("price", data.price.toString());
+    // Pricing - ensure values are not null before calling toString
+    const priceValue = data.price ?? 0;
+    formData.append("price", String(priceValue));
     
     // Sale-related fields - only send when onSale is true
     if (data.onSale) {
       // Send on_sale as true
       formData.append("on_sale", "true");
       
-      // Send sale price if provided
-      if (data.salePrice) {
-        formData.append("salePrice", data.salePrice.toString());
-        formData.append("sale_price", data.salePrice.toString()); // legacy sync
+      // Send sale price if provided - handle null/undefined
+      if (data.salePrice != null && data.salePrice !== undefined) {
+        const salePriceValue = typeof data.salePrice === 'number' ? data.salePrice : parseFloat(String(data.salePrice)) || 0;
+        formData.append("salePrice", String(salePriceValue));
+        formData.append("sale_price", String(salePriceValue)); // legacy sync
       }
       
-      // Send sale dates if provided (required when onSale is true)
-      if (data.saleStart) {
-        formData.append("sale_start", data.saleStart);
+      // Send sale dates if provided (required when onSale is true) - handle null/undefined
+      if (data.saleStart && data.saleStart !== null && data.saleStart !== undefined) {
+        formData.append("sale_start", String(data.saleStart));
       }
-      if (data.saleEnd) {
-        formData.append("sale_end", data.saleEnd);
+      if (data.saleEnd && data.saleEnd !== null && data.saleEnd !== undefined) {
+        formData.append("sale_end", String(data.saleEnd));
       }
     } else {
       // Explicitly set on_sale to false when not on sale
       formData.append("on_sale", "false");
     }
-    if (data.tax) formData.append("tax", data.tax.toString());
+    
+    // Tax - handle null/undefined
+    if (data.tax != null && data.tax !== undefined) {
+      const taxValue = typeof data.tax === 'number' ? data.tax : parseFloat(String(data.tax)) || 0;
+      formData.append("tax", String(taxValue));
+    }
     
     // Stock Quantity - main product quantity (NOT derived from variants)
     formData.append("quantity", String(data.quantity || 0));
@@ -737,11 +872,22 @@ const ProductForm: React.FC<ProductFormProps> = ({
     } catch (error: any) {
       console.error(`Error ${mode === "create" ? "creating" : "updating"} product:`, error);
       
-      // Handle API error
+      // Handle API error with better subcategory error handling
       let errorMessage = `Failed to ${mode === "create" ? "create" : "update"} product. Please try again.`;
       
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
+        
+        // If it's a subcategory error, provide helpful guidance
+        if (errorMessage.includes("Sub-category") || errorMessage.includes("subcategory") || errorMessage.includes("sub-category")) {
+          // Clear invalid subcategory from form
+          if (subCategory) {
+            setSubCategory("");
+            toast.warning("Subcategory cleared", {
+              description: "The selected subcategory is invalid. Please select a valid subcategory.",
+            });
+          }
+        }
       } else if (error?.response?.status === 413) {
         errorMessage = "File size too large. Please use smaller images.";
       } else if (error?.message) {
@@ -754,6 +900,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       });
     } finally {
       setInternalIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -843,6 +990,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
+        
+        // If it's a subcategory error, provide helpful guidance
+        if (errorMessage.includes("Sub-category") || errorMessage.includes("subcategory") || errorMessage.includes("sub-category")) {
+          // Clear invalid subcategory from form
+          if (subCategory) {
+            setSubCategory("");
+            toast.warning("Subcategory cleared", {
+              description: "The selected subcategory is invalid. Please select a valid subcategory.",
+            });
+          }
+        }
       } else if (error?.response?.status === 413) {
         errorMessage = "File size too large. Please use smaller images.";
       } else if (error?.response?.status === 429) {
@@ -891,7 +1049,34 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  const toDateInputValue = (value: string) => (value ? value.slice(0, 16) : "");
+  const toDateInputValue = (value: string | null | undefined): string => {
+    // Handle null, undefined, or empty string
+    if (!value || value === null || value === undefined) {
+      return "";
+    }
+    // Ensure it's a string and has valid date format
+    const dateString = String(value);
+    // If it's a valid date string, slice to datetime-local format (YYYY-MM-DDTHH:mm)
+    if (dateString.length >= 16) {
+      return dateString.slice(0, 16);
+    }
+    // If it's a date string that needs formatting, try to convert
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        // Format as YYYY-MM-DDTHH:mm for datetime-local input
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+    } catch (e) {
+      // If conversion fails, return empty string
+    }
+    return "";
+  };
 
   // Remove tag
   const removeTag = (tag: string) => {
@@ -1012,22 +1197,50 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     onValueChange={(value) => {
                       // Find the selected item from all categories and subcategories
                       const allCategories = categories.flatMap(cat => [
-                        { ...cat, isRoot: true },
-                        ...(cat.children || []).map((child: Category) => ({ ...child, isRoot: false }))
+                        { ...cat, isRoot: true, actualParentId: null },
+                        ...(cat.children || []).map((child: Category) => ({ 
+                          ...child, 
+                          isRoot: false,
+                          actualParentId: cat._id // Store the actual parent ID from the category structure
+                        }))
                       ]);
                       const selected = allCategories.find(c => c._id === value);
                       
-                      if (selected && !selected.isRoot && selected.parent) {
-                        // It's a subcategory - set both parent and subcategory
-                        const parentId = typeof selected.parent === 'string' 
-                          ? selected.parent 
-                          : (selected.parent as any)?._id || "";
-                        setCategory(parentId);
+                      if (selected && !selected.isRoot && selected.actualParentId) {
+                        // It's a subcategory - use the actual parent ID from the category structure
+                        // This ensures the parent ID matches the category that contains this subcategory
+                        setCategory(selected.actualParentId);
                         setSubCategory(value);
-                      } else {
+                      } else if (selected && selected.isRoot) {
                         // It's a root category - set category and clear subcategory
                         setCategory(value);
                         setSubCategory("");
+                      } else {
+                        // Fallback: try to extract parent from subcategory's parent field
+                        // This handles cases where subcategory might have a parent reference
+                        if (selected && selected.parent) {
+                          const parentId = typeof selected.parent === 'string' 
+                            ? selected.parent 
+                            : (selected.parent as any)?._id || "";
+                          
+                          // Validate that the parent exists in our categories list
+                          const parentExists = categories.some(cat => cat._id === parentId);
+                          if (parentExists) {
+                            setCategory(parentId);
+                            setSubCategory(value);
+                          } else {
+                            // Invalid parent - clear subcategory
+                            toast.error("Invalid subcategory", {
+                              description: "The selected subcategory's parent category is not available.",
+                            });
+                            setCategory("");
+                            setSubCategory("");
+                          }
+                        } else {
+                          // Root category
+                          setCategory(value);
+                          setSubCategory("");
+                        }
                       }
                     }}
                     disabled={categoriesLoading}
@@ -1087,16 +1300,32 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   {subCategory && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Subcategory: <span className="font-medium">
-                        {categories
-                          .flatMap(cat => cat.children || [])
-                          .find(sub => sub._id === subCategory)?.name || "Unknown"}
+                        {(() => {
+                          try {
+                            const sub = categories
+                              .flatMap(cat => (cat?.children || []))
+                              .find(sub => sub?._id === subCategory);
+                            return sub?.name || "Unknown";
+                          } catch (e) {
+                            console.warn("Error finding subcategory:", e);
+                            return "Unknown";
+                          }
+                        })()}
                       </span>
                     </p>
                   )}
                   {category && !subCategory && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Category: <span className="font-medium">
-                        {categories.find(cat => cat._id === category)?.name || "Unknown"}
+                        {(() => {
+                          try {
+                            const cat = categories.find(c => c?._id === category);
+                            return cat?.name || "Unknown";
+                          } catch (e) {
+                            console.warn("Error finding category:", e);
+                            return "Unknown";
+                          }
+                        })()}
                       </span>
                     </p>
                   )}

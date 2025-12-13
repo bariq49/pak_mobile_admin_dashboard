@@ -467,13 +467,27 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
       tags: Array.isArray(product.tags) ? product.tags.map((t: any) => typeof t === 'string' ? t : t.name || t) : [],
       
       // Pricing & Sales - handle both salePrice and sale_price, and on_sale flags/dates
-      price: product.price !== undefined ? product.price.toString() : "0",
-      salePrice: (product.salePrice !== undefined ? product.salePrice : product.sale_price !== undefined ? product.sale_price : 0).toString(),
+      // Safely convert to string, handling null and undefined
+      price: (product.price != null && product.price !== undefined) ? String(product.price) : "0",
+      salePrice: (product.salePrice != null && product.salePrice !== undefined) 
+        ? String(product.salePrice) 
+        : (product.sale_price != null && product.sale_price !== undefined) 
+          ? String(product.sale_price) 
+          : "0",
       onSale: Boolean(product.on_sale),
-      saleStart: product.sale_start || "",
-      saleEnd: product.sale_end || "",
-      tax: product.tax !== undefined ? product.tax.toString() : "0",
-      quantity: product.quantity !== undefined ? product.quantity.toString() : "0",
+      // Handle sale dates - ensure they're strings, not null
+      saleStart: product.sale_start && product.sale_start !== null 
+        ? (typeof product.sale_start === 'string' 
+            ? product.sale_start 
+            : new Date(product.sale_start).toISOString().slice(0, 16)) 
+        : "",
+      saleEnd: product.sale_end && product.sale_end !== null 
+        ? (typeof product.sale_end === 'string' 
+            ? product.sale_end 
+            : new Date(product.sale_end).toISOString().slice(0, 16)) 
+        : "",
+      tax: (product.tax != null && product.tax !== undefined) ? String(product.tax) : "0",
+      quantity: (product.quantity != null && product.quantity !== undefined) ? String(product.quantity) : "0",
       
       // Media
       featuredImage: featuredImageUrl,
@@ -491,8 +505,8 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
             color: v.color || "",
             bundle: v.bundle || "",
             warranty: v.warranty || "",
-            price: v.price !== undefined ? v.price.toString() : "",
-            stock: v.stock !== undefined ? v.stock.toString() : "",
+            price: (v.price != null && v.price !== undefined) ? String(v.price) : "",
+            stock: (v.stock != null && v.stock !== undefined) ? String(v.stock) : "",
             sku: v.sku || "",
             image: typeof v.image === 'string' ? v.image : v.image?.thumbnail || v.image?.original || "",
           }))

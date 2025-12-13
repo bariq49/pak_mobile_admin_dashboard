@@ -100,12 +100,76 @@ export interface GetSubcategoriesResponse {
     };
 }
 
+/**
+ * Get all subcategories (optionally filtered by parent)
+ * @param parentId - Optional parent category ID to filter subcategories
+ * @param page - Page number (default: 1)
+ * @param limit - Items per page (default: 10)
+ */
 export async function getSubcategoriesApi(parentId?: string, page = 1, limit = 10): Promise<GetSubcategoriesResponse> {
     const url = parentId 
         ? `${API_RESOURCES.SUBCATEGORIES}?parentId=${parentId}&page=${page}&limit=${limit}`
         : `${API_RESOURCES.SUBCATEGORIES}?page=${page}&limit=${limit}`;
     const { data } = await http.get<GetSubcategoriesResponse>(url);
     return data;
+}
+
+/**
+ * Get a single subcategory by ID using the new endpoint format
+ * ✅ New (correct): GET /api/v1/categories/subcategories/{id}
+ * ❌ Old (deprecated): GET /api/v1/categories/{id}
+ * 
+ * @param id - Subcategory ID
+ * @returns Subcategory data
+ */
+export async function getSubcategoryByIdApi(id: string): Promise<{ status: string; data: Category }> {
+    const response = await http.get<any>(`${API_RESOURCES.SUBCATEGORIES}/${id}`);
+    const responseData = response.data;
+    let subcategoryData: Category | null = null;
+
+    // Handle different response structures
+    if (responseData?.data?.subcategory) {
+        subcategoryData = responseData.data.subcategory;
+    } else if (responseData?.data?.category) {
+        subcategoryData = responseData.data.category;
+    } else if (responseData?.data) {
+        subcategoryData = responseData.data;
+    } else {
+        throw new Error("Subcategory data not found in expected structure.");
+    }
+    
+    if (!subcategoryData) {
+        throw new Error("Subcategory not found in API response");
+    }
+    return { status: 'success', data: subcategoryData };
+}
+
+/**
+ * Get a subcategory by slug (searches in subcategories endpoint)
+ * @param slug - Subcategory slug
+ * @param parentId - Optional parent category ID to narrow search
+ */
+export async function getSubcategoryBySlugApi(slug: string, parentId?: string): Promise<{ status: string; data: Category }> {
+    const params = parentId ? `?slug=${slug}&parentId=${parentId}` : `?slug=${slug}`;
+    const response = await http.get<any>(`${API_RESOURCES.SUBCATEGORIES}${params}`);
+    const responseData = response.data;
+    
+    // Handle array response (search results)
+    if (responseData?.data?.subCategories && Array.isArray(responseData.data.subCategories)) {
+        const subcategory = responseData.data.subCategories.find((cat: Category) => cat.slug === slug);
+        if (subcategory) {
+            return { status: 'success', data: subcategory };
+        }
+    }
+    
+    // Handle single object response
+    if (responseData?.data?.subcategory) {
+        return { status: 'success', data: responseData.data.subcategory };
+    } else if (responseData?.data) {
+        return { status: 'success', data: responseData.data };
+    }
+    
+    throw new Error("Subcategory not found");
 }
 
 /* ---------------- CREATE CATEGORY API ---------------- */
