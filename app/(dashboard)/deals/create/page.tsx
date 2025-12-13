@@ -148,7 +148,7 @@ const CreateDealPage = () => {
 
       // Redirect to deals list after short delay
       setTimeout(() => {
-        router.push("/en/deals");
+        router.push("/deals");
       }, 1500);
 
     } catch (error: any) {
@@ -216,7 +216,7 @@ const CreateDealPage = () => {
 
       // Redirect to deals list
       setTimeout(() => {
-        router.push("/en/deals");
+        router.push("/deals");
       }, 1500);
 
     } catch (error: any) {
@@ -252,7 +252,7 @@ const CreateDealPage = () => {
     );
     
     if (confirmLeave) {
-      router.push("/en/deals");
+      router.push("/deals");
     }
   };
 

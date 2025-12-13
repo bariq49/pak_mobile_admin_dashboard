@@ -32,7 +32,7 @@ const EditProductPage = () => {
   // Validate product slug
   if (!slug) {
     toast.error("Product slug is required");
-    router.push("/en/products");
+    router.push("/products");
     return null;
   }
 
@@ -49,7 +49,7 @@ const EditProductPage = () => {
         toast.error("Failed to load product", {
           description: error?.response?.data?.message || error?.message || "Product not found",
         });
-        router.push("/en/products");
+        router.push("/products");
       }
     };
 
@@ -241,7 +241,7 @@ const EditProductPage = () => {
 
       // Redirect to products list after short delay
       setTimeout(() => {
-        router.push("/en/products");
+        router.push("/products");
       }, 1500);
 
     } catch (error: any) {
@@ -312,7 +312,7 @@ const EditProductPage = () => {
 
       // Redirect to products list
       setTimeout(() => {
-        router.push("/en/products");
+        router.push("/products");
       }, 1500);
 
     } catch (error: any) {
@@ -348,7 +348,7 @@ const EditProductPage = () => {
     );
     
     if (confirmLeave) {
-      router.push("/en/products");
+      router.push("/products");
     }
   };
 

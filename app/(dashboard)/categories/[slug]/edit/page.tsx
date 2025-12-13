@@ -26,7 +26,7 @@ const EditCategoryPage = () => {
   // Validate category slug
   if (!slug) {
     toast.error("Category slug is required");
-    router.push("/en/categories");
+    router.push("/categories");
     return null;
   }
 
@@ -43,7 +43,7 @@ const EditCategoryPage = () => {
         toast.error("Failed to load category", {
           description: error?.response?.data?.message || error?.message || "Category not found",
         });
-        router.push("/en/categories");
+        router.push("/categories");
       }
     };
 
@@ -141,7 +141,7 @@ const EditCategoryPage = () => {
 
       // Redirect to categories list after short delay
       setTimeout(() => {
-        router.push("/en/categories");
+        router.push("/categories");
       }, 1500);
     } catch (error: any) {
       console.error("Error updating category:", error);
@@ -225,7 +225,7 @@ const EditCategoryPage = () => {
 
       // Redirect to categories list
       setTimeout(() => {
-        router.push("/en/categories");
+        router.push("/categories");
       }, 1500);
     } catch (error: any) {
       console.error("Error saving draft:", error);
@@ -260,7 +260,7 @@ const EditCategoryPage = () => {
     );
 
     if (confirmLeave) {
-      router.push("/en/categories");
+      router.push("/categories");
     }
   };
 

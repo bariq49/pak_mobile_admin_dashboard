@@ -217,7 +217,7 @@ const CreateProductPage = () => {
 
       // Redirect to products list after short delay
       setTimeout(() => {
-        router.push("/en/products");
+        router.push("/products");
       }, 1500);
 
     } catch (error: any) {
@@ -274,7 +274,7 @@ const CreateProductPage = () => {
 
       // Redirect to products list
       setTimeout(() => {
-        router.push("/en/products");
+        router.push("/products");
       }, 1500);
 
     } catch (error: any) {
@@ -307,7 +307,7 @@ const CreateProductPage = () => {
     );
     
     if (confirmLeave) {
-      router.push("/en/products");
+      router.push("/products");
     }
   };
 

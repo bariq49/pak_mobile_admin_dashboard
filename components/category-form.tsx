@@ -320,7 +320,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
         // Redirect to categories list after short delay
         setTimeout(() => {
-          router.push("/en/categories");
+          router.push("/categories");
         }, 1500);
       } else {
         // Edit mode
@@ -350,7 +350,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
         // Redirect to categories list after short delay
         setTimeout(() => {
-          router.push("/en/categories");
+          router.push("/categories");
         }, 1500);
       }
     } catch (error: any) {
@@ -441,7 +441,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
         // Redirect to categories list
         setTimeout(() => {
-          router.push("/en/categories");
+          router.push("/categories");
         }, 1500);
       } else {
         // Update draft
@@ -468,7 +468,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
         // Redirect to categories list
         setTimeout(() => {
-          router.push("/en/categories");
+          router.push("/categories");
         }, 1500);
       }
     } catch (error: any) {
@@ -509,7 +509,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
     if (confirmLeave) {
       resetCategoryForm();
-      router.push("/en/categories");
+      router.push("/categories");
     }
   };
 

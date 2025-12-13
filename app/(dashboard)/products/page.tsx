@@ -45,7 +45,7 @@ export default function ProductsPage() {
     }
     
     // Navigate to the edit page using the slug
-    router.push(`/en/products/${productSlug}/edit`);
+    router.push(`/products/${productSlug}/edit`);
   };
 
   const columns = useMemo(
@@ -96,7 +96,7 @@ export default function ProductsPage() {
           </CardDescription>
         </div>
         <Button className="mt-4 sm:mt-0" size="sm" asChild>
-          <Link href="/en/products/create">
+          <Link href="/products/create">
             <Plus className="h-4 w-4 mr-2" /> Add Product
           </Link>
         </Button>

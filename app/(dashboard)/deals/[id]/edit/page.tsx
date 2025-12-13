@@ -30,7 +30,7 @@ const EditDealPage = () => {
   // Validate deal ID
   if (!dealId) {
     toast.error("Deal ID is required");
-    router.push("/en/deals");
+    router.push("/deals");
     return null;
   }
 
@@ -51,7 +51,7 @@ const EditDealPage = () => {
         toast.error("Failed to load deal", {
           description: error?.response?.data?.message || error?.message || "Deal not found",
         });
-        router.push("/en/deals");
+        router.push("/deals");
       } finally {
         setIsFetchingDeal(false);
       }
@@ -185,7 +185,7 @@ const EditDealPage = () => {
 
       // Redirect to deals list after short delay
       setTimeout(() => {
-        router.push("/en/deals");
+        router.push("/deals");
       }, 1500);
 
     } catch (error: any) {
@@ -253,7 +253,7 @@ const EditDealPage = () => {
 
       // Redirect to deals list
       setTimeout(() => {
-        router.push("/en/deals");
+        router.push("/deals");
       }, 1500);
 
     } catch (error: any) {
@@ -289,7 +289,7 @@ const EditDealPage = () => {
     );
     
     if (confirmLeave) {
-      router.push("/en/deals");
+      router.push("/deals");
     }
   };
 

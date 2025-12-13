@@ -38,7 +38,7 @@ export default function CategoriesPage() {
         }
 
         // Navigate to the edit page using the slug
-        router.push(`/en/categories/${categorySlug}/edit`);
+        router.push(`/categories/${categorySlug}/edit`);
     };
 
     const columns = useMemo(
@@ -64,7 +64,7 @@ export default function CategoriesPage() {
                 </div>
 
                 <Button className="mt-4 sm:mt-0" size="sm" asChild>
-                    <Link href="/en/categories/create">
+                    <Link href="/categories/create">
                         <Plus className="h-4 w-4 mr-2" /> Add Category
                     </Link>
                 </Button>

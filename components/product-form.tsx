@@ -847,7 +847,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         // Redirect to products list after short delay
         setTimeout(() => {
-          router.push("/en/products");
+          router.push("/products");
         }, 1500);
       } else {
         // PUT for edit
@@ -866,7 +866,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         // Redirect to products list after short delay
         setTimeout(() => {
-          router.push("/en/products");
+          router.push("/products");
         }, 1500);
       }
     } catch (error: any) {
@@ -961,7 +961,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         // Redirect to products list
         setTimeout(() => {
-          router.push("/en/products");
+          router.push("/products");
         }, 1500);
       } else {
         // PATCH for edit
@@ -980,7 +980,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         // Redirect to products list
         setTimeout(() => {
-          router.push("/en/products");
+          router.push("/products");
         }, 1500);
       }
     } catch (error: any) {
@@ -1037,7 +1037,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       if (mode === "create") {
         resetProductForm();
       }
-      router.push("/en/products");
+      router.push("/products");
     }
   };
 

@@ -361,7 +361,7 @@ const DealForm: React.FC<DealFormProps> = ({
       if (mode === "create") {
         resetDealForm();
       }
-      router.push("/en/deals");
+      router.push("/deals");
     }
   };
 
