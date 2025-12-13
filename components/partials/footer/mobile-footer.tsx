@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
-import { MenuBar, DSearch } from "@/components/svg";
+import { Menu, Search } from "lucide-react";
 import Link from "next/link";
 const MobileFooter = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
   return (
     <footer className="bg-card bg-no-repeat   shadow-[0_-4px_29px_#9595952b] dark:shadow-[0_-4px_29px_#000000cc] footer-bg  border-t dark:border-none flex justify-around items-center backdrop-filter backdrop-blur-[40px] fixed left-0 w-full z-50 bottom-0 py-[12px] px-4">
       <div className="flex flex-col items-center justify-center">
-        <DSearch
+        <Search
           className="h-6 w-6  cursor-pointer"
           onClick={handleOpenSearch}
         />

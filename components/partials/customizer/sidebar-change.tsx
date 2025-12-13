@@ -5,31 +5,40 @@ import { useSidebar, useThemeStore } from "@/store";
 import { themes } from "@/config/thems";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { VerticalSvg, HorizontalSvg, SemiBoxSvg } from "@/components/svg";
 import { CheckCircle2 } from "lucide-react";
+
+// Simple layout SVG components
+const VerticalLayout = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 60" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="25" height="50" rx="2" className="fill-default-300" />
+    <rect x="35" y="5" width="60" height="50" rx="2" className="fill-default-400" />
+  </svg>
+);
+
+const SemiBoxLayout = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 60" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="20" height="50" rx="2" className="fill-default-300" />
+    <rect x="30" y="5" width="65" height="50" rx="2" className="fill-default-400" />
+  </svg>
+);
+
 const sidebarOptions = [
   {
     key: "module",
     label: "Module",
     disabled: (layout: string) => layout === "semibox" || layout === "horizontal",
-    svg: (
-      <VerticalSvg className="[&>rect]:fill-default-300 [&>circle]:fill-default-400 [&>path]:fill-default-400" />
-    ),
+    svg: <VerticalLayout className="w-full h-full" />,
   },
   {
     key: "classic",
     label: "Classic",
     disabled: (layout: string) => layout === "semibox",
-    svg: (
-      <SemiBoxSvg className="[&>rect]:fill-default-300 [&>circle]:fill-default-400 [&>path]:fill-default-400" />
-    ),
+    svg: <SemiBoxLayout className="w-full h-full" />,
   },
   {
     key: "popover",
     label: "Popover",
-    svg: (
-      <SemiBoxSvg className="[&>rect]:fill-default-300 [&>circle]:fill-default-400 [&>path]:fill-default-400" />
-    ),
+    svg: <SemiBoxLayout className="w-full h-full" />,
   },
 ];
 
