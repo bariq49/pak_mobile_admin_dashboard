@@ -29,7 +29,19 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "api.dicebear.com", // optional: for avatars if you use them
+        hostname: "api.dicebear.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
       },
     ],
   },

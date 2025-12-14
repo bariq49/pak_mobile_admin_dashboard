@@ -18,6 +18,11 @@ interface CustomerCardProps {
 const ListItem = ({ item, index }: CustomerCardProps) => {
   const { name, email, score, image, amount, color } = item;
 
+  // Validate image URL - only use if it's a valid URL, otherwise let fallback show
+  const imageSrc = image && (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:"))
+    ? image
+    : undefined;
+
   return (
     <>
       <div className="flex flex-col sm:flex-row flex-wrap gap-7 sm:gap-4 w-full p-2 px-4  hover:bg-default-50 rounded-lg">
@@ -25,7 +30,7 @@ const ListItem = ({ item, index }: CustomerCardProps) => {
         <div className="flex-none flex flex-wrap items-center gap-3">
           <div className="relative inline-block">
             <Avatar>
-              <AvatarImage src={image} />
+              {imageSrc && <AvatarImage src={imageSrc} />}
               <AvatarFallback>{name}</AvatarFallback>
             </Avatar>
             <Badge

@@ -21,6 +21,10 @@ interface CustomerCardProps {
 const CustomerCard = ({ item, index }: CustomerCardProps) => {
   const { name, score, image, color, amount } = item;
 
+  // Validate image URL - only use if it's a valid URL, otherwise let fallback show
+  const imageSrc = image && (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:"))
+    ? image
+    : undefined;
 
   return (
     <>
@@ -38,7 +42,7 @@ const CustomerCard = ({ item, index }: CustomerCardProps) => {
                 </span>
               }
               <Avatar className="h-16 w-16">
-                <AvatarImage src={image} />
+                {imageSrc && <AvatarImage src={imageSrc} />}
                 <AvatarFallback>{name}</AvatarFallback>
               </Avatar>
               <Badge

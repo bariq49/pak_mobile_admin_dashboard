@@ -76,14 +76,22 @@ const TopSell = () => {
         <div className="h-[495px]">
           <ScrollArea className="h-full">
             <TableList
-              data={products.map((product, index) => ({
-                id: product._id || product.id || index.toString(),
-                image: product.image || getDefaultAvatar(product.name || "Product"),
-                title: product.name || "Unknown Product",
-                subtitle: formatAmount(product.revenue),
-                value: `${product.sales || 0} sales`,
-                link: "#",
-              }))}
+              data={products.map((product, index) => {
+                // Validate product image URL
+                const productImage = product.image && 
+                  (product.image.startsWith("http://") || product.image.startsWith("https://"))
+                  ? product.image
+                  : getDefaultAvatar(product.name || "Product");
+                
+                return {
+                  id: product._id || product.id || index.toString(),
+                  image: productImage,
+                  title: product.name || "Unknown Product",
+                  subtitle: formatAmount(product.revenue),
+                  value: `${product.sales || 0} sales`,
+                  link: "#",
+                };
+              })}
               hoverEffect
             />
           </ScrollArea>
