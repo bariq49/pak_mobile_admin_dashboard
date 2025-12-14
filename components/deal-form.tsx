@@ -235,9 +235,10 @@ const DealForm: React.FC<DealFormProps> = ({
       desktopImageFile,
       mobileImage,
       mobileImageFile,
-      products,
-      categories,
-      subCategories,
+      // Ensure arrays are always arrays (defensive programming)
+      products: Array.isArray(products) ? products : [],
+      categories: Array.isArray(categories) ? categories : [],
+      subCategories: Array.isArray(subCategories) ? subCategories : [],
       isGlobal,
       discountType,
       discountValue,
@@ -361,7 +362,7 @@ const DealForm: React.FC<DealFormProps> = ({
       if (mode === "create") {
         resetDealForm();
       }
-      router.push("/en/deals");
+      router.push("/deals");
     }
   };
 
@@ -611,7 +612,7 @@ const DealForm: React.FC<DealFormProps> = ({
                       <Select
                         value=""
                         onValueChange={(value) => {
-                          if (value && !products.includes(value)) {
+                          if (value && Array.isArray(products) && !products.includes(value)) {
                             addProduct(value);
                           }
                         }}
@@ -626,7 +627,7 @@ const DealForm: React.FC<DealFormProps> = ({
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px] overflow-y-auto">
                           {allProducts
-                            .filter((p) => !products.includes(p._id || p.id))
+                            .filter((p) => Array.isArray(products) && !products.includes(p._id || p.id))
                             .map((product) => (
                               <SelectItem key={product._id || product.id} value={product._id || product.id}>
                                 {product.name}
@@ -634,7 +635,7 @@ const DealForm: React.FC<DealFormProps> = ({
                             ))}
                         </SelectContent>
                       </Select>
-                      {products.length > 0 && (
+                      {Array.isArray(products) && products.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           {products.map((productId) => {
                             const product = allProducts.find((p) => (p._id || p.id) === productId);
@@ -668,7 +669,7 @@ const DealForm: React.FC<DealFormProps> = ({
                       <Select
                         value=""
                         onValueChange={(value) => {
-                          if (value && !categories.includes(value)) {
+                          if (value && Array.isArray(categories) && !categories.includes(value)) {
                             addCategory(value);
                           }
                         }}
@@ -683,7 +684,7 @@ const DealForm: React.FC<DealFormProps> = ({
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px] overflow-y-auto">
                           {allCategories
-                            .filter((c) => !c.parent && !categories.includes(c._id))
+                            .filter((c) => !c.parent && Array.isArray(categories) && !categories.includes(c._id))
                             .map((category) => (
                               <SelectItem key={category._id} value={category._id}>
                                 {category.name}
@@ -691,7 +692,7 @@ const DealForm: React.FC<DealFormProps> = ({
                             ))}
                         </SelectContent>
                       </Select>
-                      {categories.length > 0 && (
+                      {Array.isArray(categories) && categories.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           {categories.map((categoryId) => {
                             const category = allCategories.find((c) => c._id === categoryId);
@@ -725,7 +726,7 @@ const DealForm: React.FC<DealFormProps> = ({
                       <Select
                         value=""
                         onValueChange={(value) => {
-                          if (value && !subCategories.includes(value)) {
+                          if (value && Array.isArray(subCategories) && !subCategories.includes(value)) {
                             addSubCategory(value);
                           }
                         }}
@@ -746,7 +747,7 @@ const DealForm: React.FC<DealFormProps> = ({
                                 parentName: cat.name,
                               }))
                             )
-                            .filter((subCat) => !subCategories.includes(subCat._id))
+                            .filter((subCat) => Array.isArray(subCategories) && !subCategories.includes(subCat._id))
                             .map((subCat) => (
                               <SelectItem key={subCat._id} value={subCat._id}>
                                 {subCat.parentName} → {subCat.name}
@@ -754,7 +755,7 @@ const DealForm: React.FC<DealFormProps> = ({
                             ))}
                         </SelectContent>
                       </Select>
-                      {subCategories.length > 0 && (
+                      {Array.isArray(subCategories) && subCategories.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           {subCategories.map((subCategoryId) => {
                             const subCategory = allCategories

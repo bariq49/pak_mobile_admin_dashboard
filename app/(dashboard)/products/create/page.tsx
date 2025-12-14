@@ -107,22 +107,50 @@ const CreateProductPage = () => {
     if (data.videoUrl) formData.append("videoUrl", data.videoUrl);
 
     // Variants - filter out empty ones and send as JSON
-    const validVariants = data.variants?.filter(v => 
+    // Remove File objects and blob URLs from variants JSON
+    const allVariants = data.variants || [];
+    const validVariants = allVariants.filter(v => 
       v.storage || v.ram || v.color || v.bundle || v.warranty || v.price || v.stock
-    ).map(v => ({
-      storage: v.storage || undefined,
-      ram: v.ram || undefined,
-      color: v.color || undefined,
-      bundle: v.bundle || undefined,
-      warranty: v.warranty || undefined,
-      price: parseFloat(v.price) || undefined,
-      stock: parseInt(v.stock) || 0,
-      sku: v.sku || undefined,
-    }));
+    );
+    
+    // Build clean variants array for JSON (remove File objects and blob URLs)
+    const variantsForJSON = validVariants.map((v) => {
+      const cleanVariant: any = {
+        storage: v.storage || undefined,
+        ram: v.ram || undefined,
+        color: v.color || undefined,
+        bundle: v.bundle || undefined,
+        warranty: v.warranty || undefined,
+        price: parseFloat(v.price) || undefined,
+        stock: parseInt(v.stock) || 0,
+        sku: v.sku || undefined,
+      };
+      
+      // Only include image if it's a real Cloudinary URL (for updates), NOT a blob URL
+      if (v.image && !v.image.startsWith('blob:') && !v.imageFile) {
+        cleanVariant.image = v.image;
+      }
+      // Don't include imageFile (it's a File object, not JSON)
+      // Don't include blob URLs (temporary preview URLs)
+      
+      return cleanVariant;
+    });
 
-    if (validVariants && validVariants.length > 0) {
-      formData.append("variants", JSON.stringify(validVariants));
+    if (variantsForJSON && variantsForJSON.length > 0) {
+      formData.append("variants", JSON.stringify(variantsForJSON));
     }
+
+    // ✅ CRITICAL: Append variant image files with EXACT field names
+    // Backend expects: variant_0_image, variant_1_image, etc. where index matches JSON array position
+    // IMPORTANT: Use the filtered validVariants array index (matches JSON array position)
+    validVariants.forEach((variant, index) => {
+      if (variant.imageFile && variant.imageFile instanceof File) {
+        // Field name pattern: variant_${index}_image where index starts at 0
+        // This index MUST match the variant's position in the JSON array sent to backend
+        const fieldName = `variant_${index}_image`;
+        formData.append(fieldName, variant.imageFile);
+      }
+    });
 
     // Additional Information - Convert array to object {key: value}
     if (data.additionalInfo && data.additionalInfo.length > 0) {
@@ -217,7 +245,7 @@ const CreateProductPage = () => {
 
       // Redirect to products list after short delay
       setTimeout(() => {
-        router.push("/en/products");
+        router.push("/products");
       }, 1500);
 
     } catch (error: any) {
@@ -274,7 +302,7 @@ const CreateProductPage = () => {
 
       // Redirect to products list
       setTimeout(() => {
-        router.push("/en/products");
+        router.push("/products");
       }, 1500);
 
     } catch (error: any) {
@@ -307,7 +335,7 @@ const CreateProductPage = () => {
     );
     
     if (confirmLeave) {
-      router.push("/en/products");
+      router.push("/products");
     }
   };
 

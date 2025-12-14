@@ -349,6 +349,7 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
       stock: "",
       sku: "",
       image: "",
+      imageFile: null,
     };
     // console.log("[ProductStore] addVariant: Adding new variant", newVariant.id);
     set({ variants: [...currentVariants, newVariant] });
@@ -360,7 +361,6 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
   },
   updateVariant: (id: string, updates: Partial<Variant>) => {
     const currentVariants = get().variants;
-    console.log("[ProductStore] updateVariant: Updating variant", id, updates);
     set({
       variants: currentVariants.map((v) =>
         v.id === id ? { ...v, ...updates } : v
@@ -509,8 +509,9 @@ export const useProductFormStore = create<ProductFormStoreState>()((set, get) =>
             stock: (v.stock != null && v.stock !== undefined) ? String(v.stock) : "",
             sku: v.sku || "",
             image: typeof v.image === 'string' ? v.image : v.image?.thumbnail || v.image?.original || "",
+            imageFile: null, // No file in edit mode unless user uploads a new one
           }))
-        : [{ id: `variant-${Date.now()}`, storage: "", ram: "", color: "", bundle: "", warranty: "", price: "", stock: "", sku: "", image: "" }],
+        : [{ id: `variant-${Date.now()}`, storage: "", ram: "", color: "", bundle: "", warranty: "", price: "", stock: "", sku: "", image: "", imageFile: null }],
       
       // Additional Information - Convert from API format (object or array)
       additionalInfo: (() => {
@@ -751,38 +752,44 @@ export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
   setMobileImageFile: (value: File | null) => set({ mobileImageFile: value }),
   
   // Target Selection Actions
-  setProducts: (value: string[]) => set({ products: value }),
+  setProducts: (value: string[]) => set({ products: Array.isArray(value) ? value : [] }),
   addProduct: (productId: string) => {
     const current = get().products;
-    if (!current.includes(productId)) {
-      set({ products: [...current, productId] });
+    const productsArray = Array.isArray(current) ? current : [];
+    if (!productsArray.includes(productId)) {
+      set({ products: [...productsArray, productId] });
     }
   },
   removeProduct: (productId: string) => {
     const current = get().products;
-    set({ products: current.filter(id => id !== productId) });
+    const productsArray = Array.isArray(current) ? current : [];
+    set({ products: productsArray.filter(id => id !== productId) });
   },
-  setCategories: (value: string[]) => set({ categories: value }),
+  setCategories: (value: string[]) => set({ categories: Array.isArray(value) ? value : [] }),
   addCategory: (categoryId: string) => {
     const current = get().categories;
-    if (!current.includes(categoryId)) {
-      set({ categories: [...current, categoryId] });
+    const categoriesArray = Array.isArray(current) ? current : [];
+    if (!categoriesArray.includes(categoryId)) {
+      set({ categories: [...categoriesArray, categoryId] });
     }
   },
   removeCategory: (categoryId: string) => {
     const current = get().categories;
-    set({ categories: current.filter(id => id !== categoryId) });
+    const categoriesArray = Array.isArray(current) ? current : [];
+    set({ categories: categoriesArray.filter(id => id !== categoryId) });
   },
-  setSubCategories: (value: string[]) => set({ subCategories: value }),
+  setSubCategories: (value: string[]) => set({ subCategories: Array.isArray(value) ? value : [] }),
   addSubCategory: (subCategoryId: string) => {
     const current = get().subCategories;
-    if (!current.includes(subCategoryId)) {
-      set({ subCategories: [...current, subCategoryId] });
+    const subCategoriesArray = Array.isArray(current) ? current : [];
+    if (!subCategoriesArray.includes(subCategoryId)) {
+      set({ subCategories: [...subCategoriesArray, subCategoryId] });
     }
   },
   removeSubCategory: (subCategoryId: string) => {
     const current = get().subCategories;
-    set({ subCategories: current.filter(id => id !== subCategoryId) });
+    const subCategoriesArray = Array.isArray(current) ? current : [];
+    set({ subCategories: subCategoriesArray.filter(id => id !== subCategoryId) });
   },
   setIsGlobal: (value: boolean) => {
     set({ isGlobal: value });

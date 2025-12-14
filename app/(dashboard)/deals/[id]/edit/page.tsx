@@ -30,7 +30,7 @@ const EditDealPage = () => {
   // Validate deal ID
   if (!dealId) {
     toast.error("Deal ID is required");
-    router.push("/en/deals");
+    router.push("/deals");
     return null;
   }
 
@@ -51,7 +51,7 @@ const EditDealPage = () => {
         toast.error("Failed to load deal", {
           description: error?.response?.data?.message || error?.message || "Deal not found",
         });
-        router.push("/en/deals");
+        router.push("/deals");
       } finally {
         setIsFetchingDeal(false);
       }
@@ -97,44 +97,48 @@ const EditDealPage = () => {
     const formData = new FormData();
 
     // Basic Info
-    formData.append("title", data.title);
+    formData.append("title", data.title || "");
     if (data.description) formData.append("description", data.description);
     if (data.btnText) formData.append("btnText", data.btnText);
 
     // Target Selection
-    formData.append("isGlobal", data.isGlobal.toString());
+    formData.append("isGlobal", data.isGlobal ? "true" : "false");
     
-    // Only append specific targets if not global
-    if (!data.isGlobal) {
-      if (data.products && data.products.length > 0) {
-        formData.append("products", JSON.stringify(data.products));
-      }
-      if (data.categories && data.categories.length > 0) {
-        formData.append("categories", JSON.stringify(data.categories));
-      }
-      if (data.subCategories && data.subCategories.length > 0) {
-        formData.append("subCategories", JSON.stringify(data.subCategories));
-      }
-    }
+    // Ensure arrays are always arrays (defensive)
+    const productsArray = Array.isArray(data.products) ? data.products : [];
+    const categoriesArray = Array.isArray(data.categories) ? data.categories : [];
+    const subCategoriesArray = Array.isArray(data.subCategories) ? data.subCategories : [];
+    
+    // Send arrays properly - append each item individually
+    // Backend will receive them as arrays automatically
+    productsArray.forEach((productId) => {
+      formData.append("products[]", productId);
+    });
+    
+    categoriesArray.forEach((categoryId) => {
+      formData.append("categories[]", categoryId);
+    });
+    
+    subCategoriesArray.forEach((subCategoryId) => {
+      formData.append("subCategories[]", subCategoryId);
+    });
 
     // Discount Details
-    formData.append("discountType", data.discountType);
-    formData.append("discountValue", data.discountValue);
+    formData.append("discountType", data.discountType || "percentage");
+    formData.append("discountValue", data.discountValue || "0");
 
     // Time Window
-    formData.append("startDate", data.startDate);
-    formData.append("endDate", data.endDate);
+    formData.append("startDate", data.startDate || "");
+    formData.append("endDate", data.endDate || "");
 
     // Priority
-    if (data.priority) {
-      formData.append("priority", data.priority);
-    }
+    formData.append("priority", data.priority || "1");
 
     // Images - desktop and mobile (only append if new files are selected)
-    if (data.desktopImageFile) {
+    if (data.desktopImageFile && data.desktopImageFile instanceof File) {
       formData.append("desktop", data.desktopImageFile);
     }
-    if (data.mobileImageFile) {
+    if (data.mobileImageFile && data.mobileImageFile instanceof File) {
       formData.append("mobile", data.mobileImageFile);
     }
 
@@ -185,7 +189,7 @@ const EditDealPage = () => {
 
       // Redirect to deals list after short delay
       setTimeout(() => {
-        router.push("/en/deals");
+        router.push("/deals");
       }, 1500);
 
     } catch (error: any) {
@@ -253,7 +257,7 @@ const EditDealPage = () => {
 
       // Redirect to deals list
       setTimeout(() => {
-        router.push("/en/deals");
+        router.push("/deals");
       }, 1500);
 
     } catch (error: any) {
@@ -289,7 +293,7 @@ const EditDealPage = () => {
     );
     
     if (confirmLeave) {
-      router.push("/en/deals");
+      router.push("/deals");
     }
   };
 

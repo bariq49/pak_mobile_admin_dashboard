@@ -8,29 +8,69 @@ export type Period = "30days" | "12months" | "custom";
 export interface DashboardStatsResponse {
   status: string;
   data: {
-    totalSales: number;
-    todayOrders: number;
-    completedOrders: number;
-    pendingOrders: number;
+    stats: {
+      revenue: {
+        total: number;
+        today: number;
+        monthly: number;
+      };
+      orders: {
+        total: number;
+        today: number;
+        monthly: number;
+        pending: number;
+        paid: number;
+      };
+      customers: {
+        total: number;
+        newToday: number;
+        newThisMonth: number;
+      };
+      products: {
+        total: number;
+        outOfStock: number;
+        inStock: number;
+      };
+    };
   };
 }
 
 export interface RevenueChartResponse {
   status: string;
-  data: Array<{
-    date: string;
-    revenue: number;
-    orders: number;
-  }>;
+  data: {
+    revenueData: Array<{
+      date: string;
+      revenue: number;
+      orders: number;
+    }>;
+    period: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export interface CustomerStatisticsResponse {
   status: string;
   data: {
-    totalCustomers: number;
-    newCustomers: number;
-    activeCustomers: number;
-    inactiveCustomers: number;
+    stats: {
+      total: number;
+      new: {
+        today: number;
+        thisWeek: number;
+        thisMonth: number;
+        thisYear: number;
+      };
+      active: number;
+      segments: {
+        oneOrder: number;
+        multipleOrders: number;
+        noOrders: number;
+      };
+      growth: Array<{
+        month: string;
+        count: number;
+      }>;
+    };
   };
 }
 
@@ -38,19 +78,24 @@ export interface TransactionsResponse {
   status: string;
   data: {
     transactions: Array<{
-      _id: string;
+      id: string;
       orderNumber: string;
-      customerId: string;
-      customerName: string;
-      customerImage?: string;
+      customer: {
+        name: string;
+        email: string;
+      };
       amount: number;
-      paymentMethod: string;
       status: string;
-      createdAt: string;
+      paymentMethod: string;
+      orderStatus: string;
+      date: string;
     }>;
-    total: number;
-    page: number;
-    pages: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
   };
 }
 
@@ -58,56 +103,95 @@ export interface OrdersResponse {
   status: string;
   data: {
     orders: Array<{
-      _id: string;
+      id: string;
       orderNumber: string;
-      customerId: string;
-      customerName: string;
-      amount: number;
-      status: string;
+      trackingNumber?: string;
+      customer: {
+        name: string;
+        email: string;
+      };
+      items: Array<{
+        name: string;
+        quantity: number;
+        price: number;
+        product: {
+          name: string;
+          slug: string;
+          image: string | null;
+        } | null;
+      }>;
+      totalAmount: number;
+      orderStatus: string;
+      paymentStatus: string;
+      paymentMethod: string;
+      shippingAddress?: any;
       createdAt: string;
     }>;
-    total: number;
-    page: number;
-    pages: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
   };
 }
 
 export interface TopProductsResponse {
   status: string;
   data: {
-    products: Array<{
-      _id: string;
-      name: string;
-      image?: string;
-      sales: number;
+    topProducts: Array<{
+      product: {
+        _id: string;
+        name: string;
+        slug: string;
+        price: number;
+        salePrice?: number;
+        mainImage?: string;
+        salesCount: number;
+        category?: {
+          name: string;
+          slug: string;
+        };
+      } | null;
       revenue: number;
+      totalSold: number;
+      orderCount: number;
+      salesCount?: number;
     }>;
-    total: number;
   };
 }
 
 export interface TopCustomersResponse {
   status: string;
   data: {
-    customers: Array<{
-      _id: string;
-      name: string;
-      email: string;
-      image?: string;
-      totalOrders: number;
+    topCustomers: Array<{
+      user: {
+        _id: string;
+        name: string;
+        email: string;
+        phoneNumber?: string;
+        createdAt: string;
+      } | null;
       totalSpent: number;
+      orderCount: number;
+      lastOrderDate: string | null;
     }>;
-    total: number;
   };
 }
 
 export interface VisitorsReportResponse {
   status: string;
-  data: Array<{
-    date: string;
-    visitors: number;
-    pageViews: number;
-  }>;
+  data: {
+    visitorData: Array<{
+      date: string;
+      visitors: number;
+      pageViews: number;
+    }>;
+    period: string;
+    startDate: string;
+    endDate: string;
+    note?: string;
+  };
 }
 
 /* ============ API FUNCTIONS ============ */
@@ -186,19 +270,19 @@ export async function getRecentTransactionsApi(
  * Get recent orders
  * @param page - Page number (default: 1)
  * @param limit - Items per page (default: 10)
- * @param status - Filter by status (optional)
- * @param sortBy - Sort field (optional)
+ * @param status - Filter by orderStatus (optional)
+ * @param paymentStatus - Filter by paymentStatus (optional)
  */
 export async function getRecentOrdersApi(
   page: number = 1,
   limit: number = 10,
   status?: string,
-  sortBy?: string
+  paymentStatus?: string
 ): Promise<OrdersResponse> {
   const params: Record<string, string | number> = { page, limit };
   
   if (status) params.status = status;
-  if (sortBy) params.sortBy = sortBy;
+  if (paymentStatus) params.paymentStatus = paymentStatus;
 
   const { data } = await http.get<OrdersResponse>(
     API_RESOURCES.DASHBOARD_ORDERS,
