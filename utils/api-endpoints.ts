@@ -43,14 +43,14 @@ export const API_RESOURCES = {
   DEAL_BY_ID: `${BASE_URL}/api/v1/deals/:id`,
 
   // Dashboard
-  DASHBOARD_STATS: `${BASE_URL}/api/v1/dashboard/stats`,
-  DASHBOARD_REVENUE: `${BASE_URL}/api/v1/dashboard/revenue`,
-  DASHBOARD_CUSTOMERS: `${BASE_URL}/api/v1/dashboard/customers`,
-  DASHBOARD_TRANSACTIONS: `${BASE_URL}/api/v1/dashboard/transactions`,
-  DASHBOARD_ORDERS: `${BASE_URL}/api/v1/dashboard/orders`,
-  DASHBOARD_TOP_PRODUCTS: `${BASE_URL}/api/v1/dashboard/top-products`,
-  DASHBOARD_TOP_CUSTOMERS: `${BASE_URL}/api/v1/dashboard/top-customers`,
-  DASHBOARD_VISITORS: `${BASE_URL}/api/v1/dashboard/visitors`,
+  DASHBOARD_STATS: `${BASE_URL}/api/v1/admin/dashboard/stats`,
+  DASHBOARD_REVENUE: `${BASE_URL}/api/v1/admin/dashboard/revenue`,
+  DASHBOARD_CUSTOMERS: `${BASE_URL}/api/v1/admin/dashboard/customers`,
+  DASHBOARD_TRANSACTIONS: `${BASE_URL}/api/v1/admin/dashboard/transactions`,
+  DASHBOARD_ORDERS: `${BASE_URL}/api/v1/admin/dashboard/orders`,
+  DASHBOARD_TOP_PRODUCTS: `${BASE_URL}/api/v1/admin/dashboard/top-products`,
+  DASHBOARD_TOP_CUSTOMERS: `${BASE_URL}/api/v1/admin/dashboard/top-customers`,
+  DASHBOARD_VISITORS: `${BASE_URL}/api/v1/admin/dashboard/visitors`,
 
   // File Upload
   UPLOAD: `${BASE_URL}/api/v1/upload`,
