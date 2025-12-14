@@ -38,10 +38,16 @@ export const useDashboardStatsQuery = () => {
   return useQuery<DashboardStats>({
     queryKey: ["dashboard", "stats"],
     queryFn: async () => {
-      const response = await getDashboardStatsApi();
-      return transformDashboardStats(response);
+      try {
+        const response = await getDashboardStatsApi();
+        return transformDashboardStats(response);
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 };
 
@@ -54,10 +60,16 @@ export const useRevenueChartQuery = (
   return useQuery<RevenueChartResponse>({
     queryKey: ["dashboard", "revenue", period, startDate, endDate],
     queryFn: async () => {
-      const response = await getRevenueChartApi(period, startDate, endDate);
-      return transformRevenueChartData(response);
+      try {
+        const response = await getRevenueChartApi(period, startDate, endDate);
+        return transformRevenueChartData(response);
+      } catch (error) {
+        console.error("Error fetching revenue chart:", error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 };
 
@@ -66,10 +78,16 @@ export const useCustomerStatisticsQuery = () => {
   return useQuery<CustomerStatistics>({
     queryKey: ["dashboard", "customers"],
     queryFn: async () => {
-      const response = await getCustomerStatisticsApi();
-      return transformCustomerStatistics(response);
+      try {
+        const response = await getCustomerStatisticsApi();
+        return transformCustomerStatistics(response);
+      } catch (error) {
+        console.error("Error fetching customer statistics:", error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 };
 
@@ -152,13 +170,19 @@ export const useVisitorsReportQuery = (
   startDate?: string,
   endDate?: string
 ) => {
-  return useQuery<VisitorsReportResponse>({
+  return useQuery<{ data: Array<{ date: string; visitors: number; pageViews: number }> }>({
     queryKey: ["dashboard", "visitors", period, startDate, endDate],
     queryFn: async () => {
-      const response = await getVisitorsReportApi(period, startDate, endDate);
-      return transformVisitorsReport(response);
+      try {
+        const response = await getVisitorsReportApi(period, startDate, endDate);
+        return transformVisitorsReport(response);
+      } catch (error) {
+        console.error("Error fetching visitors report:", error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 };
 

@@ -20,10 +20,12 @@ interface CustomerDataItem {
 }
 
 const TopCustomers = () => {
-  const { data, isLoading, isError } = useTopCustomersQuery(10);
+  // Fetch all customers - no limit, show everything
+  const { data, isLoading, isError } = useTopCustomersQuery(1000);
 
-  const formatAmount = (amount: number): string => {
-    return amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const formatAmount = (amount: number | undefined | null): string => {
+    if (!amount && amount !== 0) return "0";
+    return Number(amount).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
   const calculateScore = (totalSpent: number, maxSpent: number): number => {
@@ -48,14 +50,16 @@ const TopCustomers = () => {
   }
 
   const customers = data?.customers || [];
-  const maxSpent = customers.length > 0 ? Math.max(...customers.map(c => c.totalSpent)) : 0;
+  const maxSpent = customers.length > 0 
+    ? Math.max(...customers.map(c => c.totalSpent || 0).filter(spent => !isNaN(spent))) 
+    : 0;
 
   const customerData: CustomerDataItem[] = customers.map((customer: TopCustomer, index: number) => ({
     id: customer._id || customer.id || index.toString(),
-    name: customer.name,
-    email: customer.email,
-    score: calculateScore(customer.totalSpent, maxSpent),
-    image: customer.image || getDefaultAvatar(customer.name),
+    name: customer.name || "Unknown Customer",
+    email: customer.email || "No email",
+    score: calculateScore(customer.totalSpent || 0, maxSpent),
+    image: customer.image || getDefaultAvatar(customer.name || "Customer"),
     color: index === 0 ? "success" : index === 1 ? "primary" : index === 2 ? "primary" : index % 2 === 0 ? "info" : "warning",
     amount: formatAmount(customer.totalSpent),
   }));

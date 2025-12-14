@@ -19,32 +19,53 @@ const VisitorsReportChart = ({ height = 390, period = "30days" }: VisitorsReport
   const { theme: config, setTheme: setConfig } = useThemeStore();
   const { theme: mode } = useTheme();
   const theme = themes.find((theme) => theme.name === config);
-  const { data: visitorsData, isLoading } = useVisitorsReportQuery(period);
+  const { data: visitorsData, isLoading, isError } = useVisitorsReportQuery(period);
 
   if (isLoading) {
     return <Skeleton className="w-full" style={{ height: `${height}px` }} />;
   }
 
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+        <p className="text-default-600">Failed to load visitors data</p>
+      </div>
+    );
+  }
+
   // Transform API data to chart format
   const chartData = visitorsData?.data || [];
-  const series = [
-    {
-      name: "Visitors",
-      data: chartData.map((item: { date: string; visitors: number; pageViews: number }) => ({
-        x: new Date(item.date).getTime(),
-        y: item.visitors,
-      })),
-    },
-  ];
-
+  
   // Fallback to empty data if no data available
-  if (chartData.length === 0) {
+  if (!chartData || chartData.length === 0) {
     return (
       <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
         <p className="text-default-600">No visitors data available</p>
       </div>
     );
   }
+
+  const series = [
+    {
+      name: "Visitors (Per Day)",
+      data: chartData.map((item: { date: string; visitors: number; pageViews: number }) => {
+        try {
+          if (!item || !item.date) return { x: Date.now(), y: 0 };
+          // Parse date and set to start of day for consistent grouping
+          const date = new Date(item.date);
+          date.setHours(0, 0, 0, 0);
+          const dateTime = date.getTime();
+          if (isNaN(dateTime)) return { x: Date.now(), y: 0 };
+          return {
+            x: dateTime,
+            y: item.visitors || 0,
+          };
+        } catch {
+          return { x: Date.now(), y: 0 };
+        }
+      }),
+    },
+  ];
   const options:any = {
     chart: {
       zoom: {
@@ -73,6 +94,32 @@ const VisitorsReportChart = ({ height = 390, period = "30days" }: VisitorsReport
     ],
     tooltip: {
       theme: mode === "dark" ? "dark" : "light",
+      y: {
+        formatter: (value: number) => {
+          return `${value} visitors`;
+        },
+        title: {
+          formatter: () => {
+            return "Visitors (Per Day)";
+          },
+        },
+      },
+      x: {
+        formatter: (value: number) => {
+          try {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString("en-US", { 
+                month: "short", 
+                day: "numeric",
+                year: "numeric",
+                weekday: "short"
+              });
+            }
+          } catch {}
+          return new Date(value).toLocaleDateString();
+        },
+      },
     },
     grid: {
       show: false,
@@ -87,19 +134,41 @@ const VisitorsReportChart = ({ height = 390, period = "30days" }: VisitorsReport
         stops: [20, 100, 100],
       },
     },
-    yaxis: getYAxisConfig(
-      `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel})`
-    ),
+    yaxis: {
+      ...getYAxisConfig(
+        `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel})`
+      ),
+      title: {
+        text: "Visitors (Per Day)",
+        style: {
+          color: `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel})`,
+          fontSize: "12px",
+        },
+      },
+    },
 
     xaxis: {
       type: "datetime",
-      labels: getLabel(
-        `hsl(${
-          theme?.cssVars[
+      title: {
+        text: "Date (Per Day)",
+        style: {
+          color: `hsl(${theme?.cssVars[
             mode === "dark" || mode === "system" ? "dark" : "light"
-          ].chartLabel
-        })`
-      ),
+          ].chartLabel})`,
+          fontSize: "12px",
+        },
+      },
+      labels: {
+        ...getLabel(
+          `hsl(${
+            theme?.cssVars[
+              mode === "dark" || mode === "system" ? "dark" : "light"
+            ].chartLabel
+          })`
+        ),
+        datetimeUTC: false,
+        format: "MMM dd",
+      },
       axisBorder: {
         show: false,
       },

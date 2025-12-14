@@ -10,14 +10,17 @@ import type { DashboardStats } from "@/api/dashboard/dashboard.transformers";
 const EcommerceStats = () => {
   const { data: stats, isLoading, isError } = useDashboardStatsQuery();
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(2) + "M";
+  const formatNumber = (num: number | undefined | null): string => {
+    if (!num && num !== 0) return "0";
+    const number = Number(num);
+    if (isNaN(number)) return "0";
+    if (number >= 1000000) {
+      return (number / 1000000).toFixed(2) + "M";
     }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(2) + "K";
+    if (number >= 1000) {
+      return (number / 1000).toFixed(2) + "K";
     }
-    return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   const statsData: DashboardStats = stats || {
