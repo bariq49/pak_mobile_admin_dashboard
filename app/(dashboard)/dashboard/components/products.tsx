@@ -2,38 +2,69 @@
 import DashboardDropdown from "@/components/dashboard-dropdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-import p1 from "@/public/images/all-img/pr-1.png";
-import p2 from "@/public/images/all-img/pr-2.png";
-import p3 from "@/public/images/all-img/pr-3.png";
-import p4 from "@/public/images/all-img/pr-4.png";
-import p5 from "@/public/images/all-img/pr-5.png";
-import p7 from "@/public/images/all-img/pr-6.png";
-import p8 from "@/public/images/all-img/pr-7.png";
-import p9 from "@/public/images/all-img/pr-8.png";
 import TableList from "@/components/Tables/table-list";
-
-const products = [
-  { id: 1, title: "Apple iPhone 13", sku: "#FBC-101", price: "800.675", image: p1, link: "#" },
-  { id: 2, title: "Apple Clock 12", sku: "#FXZ-4587", price: "300.87", image: p2, link: "#" },
-  { id: 3, title: "Headphone", sku: "#FXZ-4568", price: "488.879", image: p3, link: "#" },
-  { id: 4, title: "Earbuds Model 1.2", sku: "#FXZ-4567", price: "500.879", image: p4, link: "#" },
-  { id: 5, title: "Hair cutter", sku: "#FXZ-4567", price: "100", image: p5, link: "#" },
-  { id: 6, title: "Clock Model 1.2", sku: "#FXZ-4567", price: "888.879", image: p2, link: "#" },
-  { id: 7, title: "Samsung Headphone", sku: "#FXZ-4567", price: "700.879", image: p7, link: "#" },
-  { id: 8, title: "Apple Clock", sku: "#FXZ-4567", price: "608.879", image: p8, link: "#" },
-  { id: 9, title: "VR Model 4.5", sku: "#FXZ-4567", price: "788.879", image: p9, link: "#" },
-  { id: 10, title: "Samsung Phone", sku: "#FXZ-4567", price: "688.879", image: p1, link: "#" },
-];
+import { useTopProductsQuery } from "@/hooks/api/use-dashboard-api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getDefaultAvatar } from "@/api/dashboard/dashboard.transformers";
 
 const Products = () => {
+  // Fetch best selling products from API
+  const { data, isLoading, isError } = useTopProductsQuery(1000);
+
+  const formatAmount = (amount: number | undefined | null): string => {
+    if (!amount && amount !== 0) return "$0.00";
+    return `$${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="border-none flex-row mb-0">
+          <div className="flex-1 pt-2">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 pb-4">
+          <div className="h-[380px]">
+            <Skeleton className="h-full w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const products = data?.products || [];
+  const total = data?.total || 0;
+  const totalSales = products.reduce((sum, p) => sum + (p.sales || 0), 0);
+
+  if (isError || products.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="border-none flex-row mb-0">
+          <div className="flex-1 pt-2">
+            <CardTitle>Popular Products</CardTitle>
+            <span className="block text-sm text-default-600 mt-2">
+              No products available
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 pb-4">
+          <div className="h-[380px] flex items-center justify-center">
+            <p className="text-default-600">No products found</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="border-none flex-row mb-0">
         <div className="flex-1 pt-2">
           <CardTitle>Popular Products</CardTitle>
           <span className="block text-sm text-default-600 mt-2">
-            Total 10.4k sales
+            Total {totalSales.toLocaleString()} sales
           </span>
         </div>
         <DashboardDropdown />
@@ -43,13 +74,13 @@ const Products = () => {
         <div className="h-[380px]">
           <ScrollArea className="h-full">
             <TableList
-              data={products.map((item) => ({
-                id: item.id,
-                image: item.image.src,
-                title: item.title,
-                subtitle: `Item ${item.sku}`,
-                value: `$${item.price}`,
-                link: item.link,
+              data={products.map((product, index) => ({
+                id: product._id || product.id || index.toString(),
+                image: product.image || getDefaultAvatar(product.name || "Product"),
+                title: product.name || "Unknown Product",
+                subtitle: formatAmount(product.revenue),
+                value: `${product.sales || 0} sales`,
+                link: "#",
               }))}
               hoverEffect
             />

@@ -9,10 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getDefaultAvatar } from "@/api/dashboard/dashboard.transformers";
 
 const TopSell = () => {
-  const { data, isLoading, isError } = useTopProductsQuery(10);
+  // Fetch all products - no limit, show everything
+  const { data, isLoading, isError } = useTopProductsQuery(1000);
 
-  const formatAmount = (amount: number): string => {
-    return `$${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatAmount = (amount: number | undefined | null): string => {
+    if (!amount && amount !== 0) return "$0.00";
+    return `$${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   if (isLoading) {
@@ -76,10 +78,10 @@ const TopSell = () => {
             <TableList
               data={products.map((product, index) => ({
                 id: product._id || product.id || index.toString(),
-                image: product.image || getDefaultAvatar(product.name),
-                title: product.name,
+                image: product.image || getDefaultAvatar(product.name || "Product"),
+                title: product.name || "Unknown Product",
                 subtitle: formatAmount(product.revenue),
-                value: `${product.sales} sales`,
+                value: `${product.sales || 0} sales`,
                 link: "#",
               }))}
               hoverEffect

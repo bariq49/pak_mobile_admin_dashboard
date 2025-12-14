@@ -92,26 +92,49 @@ const OrdersTable = () => {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const [page, setPage] = React.useState(1);
 
-  const { data: ordersData, isLoading, isError } = useRecentOrdersQuery(page, 10);
+  // Fetch all orders - no limit, show everything
+  const { data: ordersData, isLoading, isError } = useRecentOrdersQuery(1, 1000);
 
-  const formatAmount = (amount: number): string => {
-    return `$${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatAmount = (amount: number | undefined | null): string => {
+    if (!amount && amount !== 0) return "$0.00";
+    return `$${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatDate = (date: string | undefined | null, createdAt: string | undefined | null): string => {
+    try {
+      if (date) return date;
+      if (createdAt) {
+        const dateObj = new Date(createdAt);
+        if (!isNaN(dateObj.getTime())) {
+          return dateObj.toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+        }
+      }
+      return "N/A";
+    } catch {
+      return "N/A";
+    }
   };
 
   const orders: Order[] = ordersData?.orders || [];
-  const tableData: DataItem[] = orders.map((order) => ({
-    invoice: order.invoice || order.orderNumber,
-    username: order.username || order.customerName,
-    date: order.date || new Date(order.createdAt).toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }),
-    amount: formatAmount(order.amount),
-    isComplete: order.isComplete || false,
-  }));
+  const tableData: DataItem[] = orders.map((order) => {
+    // Use totalAmount if available (backend sends this), otherwise fallback to amount
+    const orderAmount = order.totalAmount !== undefined 
+      ? order.totalAmount 
+      : (order.amount !== undefined ? order.amount : 0);
+    
+    return {
+      invoice: order.invoice || order.orderNumber || "N/A",
+      username: order.username || order.customerName || "Unknown",
+      date: formatDate(order.date, order.createdAt),
+      amount: formatAmount(orderAmount),
+      isComplete: order.isComplete || false,
+    };
+  });
 
   const table = useReactTable({
     data: tableData,
@@ -124,6 +147,11 @@ const OrdersTable = () => {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    initialState: {
+      pagination: {
+        pageSize: 1000, // Show all orders
+      },
+    },
     state: {
       sorting,
       columnFilters,
@@ -217,45 +245,14 @@ const OrdersTable = () => {
         </div>
       </div>
 
-      <div className="flex justify-center  items-center gap-2 mt-5">
-        <Button
-          onClick={() => {
-            table.previousPage();
-            if (page > 1) setPage(page - 1);
-          }}
-          disabled={!table.getCanPreviousPage()}
-          className="w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600"
-        >
-          <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
-        </Button>
-
-        {table.getPageOptions().map((pageOption, pageIdx) => (
-          <Button
-            onClick={() => {
-              table.setPageIndex(pageIdx);
-              setPage(pageIdx + 1);
-            }}
-            key={`orders-table-${pageIdx}`}
-            className={cn("w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600", {
-              "bg-primary text-primary-foreground": pageIdx === table.getState().pagination.pageIndex
-            })}
-          >
-            {pageOption + 1}
-          </Button>
-
-        ))}
-
-        <Button
-          onClick={() => {
-            table.nextPage();
-            if (ordersData && page < ordersData.pages) setPage(page + 1);
-          }}
-          disabled={!table.getCanNextPage()}
-          className="w-7 h-7 p-0 bg-default-100 hover:bg-default-200 text-default-600"
-        >
-          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
-        </Button>
-      </div >
+      {/* Pagination removed - showing all orders */}
+      {tableData.length > 0 && (
+        <div className="flex justify-center items-center gap-2 mt-5">
+          <p className="text-sm text-default-600">
+            Showing all {tableData.length} order{tableData.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+      )}
     </>
   );
 }
