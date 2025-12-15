@@ -12,7 +12,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  Copy,
   CheckCircle2,
   XCircle,
   Percent,
@@ -27,11 +26,13 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 interface DealColumnProps {
   onDelete: (deal: Deal) => void;
   onEdit?: (deal: Deal) => void;
+  onView?: (deal: Deal) => void;
 }
 
 export function getDealColumns({
   onDelete,
   onEdit,
+  onView,
 }: DealColumnProps): ColumnDef<Deal>[] {
   return [
     {
@@ -285,18 +286,12 @@ export function getDealColumns({
                 {
                   label: "View Details",
                   icon: <Eye className="h-4 w-4" />,
-                  openModal: true,
+                  onClick: () => onView?.(deal),
                 },
                 {
                   label: "Edit",
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => onEdit?.(deal),
-                },
-                {
-                  label: "Duplicate",
-                  icon: <Copy className="h-4 w-4" />,
-                  onClick: () =>
-                    console.log("Duplicate (you can implement this later)"),
                 },
                 {
                   label: "Delete",

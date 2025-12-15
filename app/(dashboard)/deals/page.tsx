@@ -41,8 +41,13 @@ export default function DealsPage() {
     router.push(`/deals/${deal._id}/edit`);
   };
 
+  const handleViewDetails = (deal: Deal) => {
+    // Navigate to details page using deal ID
+    router.push(`/deals/${deal._id}`);
+  };
+
   const columns = useMemo(
-    () => getDealColumns({ onDelete: handleDelete, onEdit: handleEdit }),
+    () => getDealColumns({ onDelete: handleDelete, onEdit: handleEdit, onView: handleViewDetails }),
     []
   );
 

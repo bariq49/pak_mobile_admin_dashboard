@@ -48,8 +48,21 @@ export default function ProductsPage() {
     router.push(`/products/${productSlug}/edit`);
   };
 
+  const handleViewDetails = (product: any) => {
+    // Get the product slug for navigation
+    const productSlug = product.slug;
+    
+    if (!productSlug) {
+      toast.error("Product slug not found");
+      return;
+    }
+    
+    // Navigate to the details page using the slug
+    router.push(`/products/${productSlug}`);
+  };
+
   const columns = useMemo(
-    () => productColumns({ onDelete: handleDelete, onEdit: handleEdit }),
+    () => productColumns({ onDelete: handleDelete, onEdit: handleEdit, onView: handleViewDetails }),
     []
   );
 

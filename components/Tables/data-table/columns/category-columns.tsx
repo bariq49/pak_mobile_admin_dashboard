@@ -8,7 +8,6 @@ import {
     Eye,
     Edit,
     Trash2,
-    Copy,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,9 +23,11 @@ export interface FlatCategory extends Category {
 export function getCategoryColumns({
     onDelete,
     onEdit,
+    onView,
 }: {
     onDelete: (category: FlatCategory) => void;
     onEdit?: (category: FlatCategory) => void;
+    onView?: (category: FlatCategory) => void;
 }): ColumnDef<FlatCategory>[] {
     return [
         {
@@ -151,18 +152,12 @@ export function getCategoryColumns({
                                 {
                                     label: "View Details",
                                     icon: <Eye className="h-4 w-4" />,
-                                    openModal: true,
+                                    onClick: () => onView?.(category),
                                 },
                                 {
                                     label: "Edit",
                                     icon: <Edit className="h-4 w-4" />,
                                     onClick: () => onEdit?.(category),
-                                },
-                                {
-                                    label: "Duplicate",
-                                    icon: <Copy className="h-4 w-4" />,
-                                    onClick: () =>
-                                        console.log("Duplicate (you can implement this later)"),
                                 },
                                 {
                                     label: "Delete",
