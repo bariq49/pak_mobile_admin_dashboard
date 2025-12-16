@@ -78,10 +78,6 @@ export const menusConfig = {
             href: "/categories",
           },
           {
-            title: "Tree",
-            href: "/categories/tree",
-          },
-          {
             title: "Create",
             href: "/categories/create",
           }
@@ -96,13 +92,9 @@ export const menusConfig = {
             href: "/products",
           },
           {
-            title: "Edit",
-            href: "/products/edit",
-          },
-          {
             title: "Create",
             href: "/products/create",
-          }
+          },
         ]
       },
       {
@@ -114,13 +106,9 @@ export const menusConfig = {
             href: "/deals",
           },
           {
-            title: "Edit",
-            href: "/deals/edit",
-          },
-          {
             title: "Create",
             href: "/deals/create",
-          }
+          },
         ]
       },
     ],

@@ -24,8 +24,9 @@ import { DataTableRowActions } from "../data-table-row-actions";
 interface ProductColumnProps {
   onDelete: (product: Product) => void;
   onEdit: (product: Product) => void;
+  onView?: (product: Product) => void;
 }
-export const productColumns = ({ onDelete, onEdit }: ProductColumnProps): ColumnDef<Product>[] => [
+export const productColumns = ({ onDelete, onEdit, onView }: ProductColumnProps): ColumnDef<Product>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -268,7 +269,7 @@ export const productColumns = ({ onDelete, onEdit }: ProductColumnProps): Column
           {
             label: "View Details",
             icon: <Eye className="h-4 w-4" />,
-            openModal: true,
+            onClick: () => onView?.(row.original),
           },
           {
             label: "Edit",
