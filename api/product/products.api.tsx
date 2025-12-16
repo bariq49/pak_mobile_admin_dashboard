@@ -22,6 +22,7 @@ export interface Product {
   id: string;
   _id?: string; // MongoDB ID
   name: string;
+  slug?: string;
   brand?: string;
   model?: string;
   sku?: string;
