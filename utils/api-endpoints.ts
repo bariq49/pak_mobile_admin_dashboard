@@ -3,7 +3,7 @@
 const getBaseUrl = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!apiUrl) {
-    return "http://localhost:5000";
+    return "https://pak-mobile-store-backend.vercel.app";
   }
   // Remove trailing /api/v1 if present
   return apiUrl.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
