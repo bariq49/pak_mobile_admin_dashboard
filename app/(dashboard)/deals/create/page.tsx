@@ -16,6 +16,7 @@ interface ValidationErrors {
   discountValue?: string;
   startDate?: string;
   endDate?: string;
+  dealVariant?: string;
 }
 
 const CreateDealPage = () => {
@@ -30,6 +31,10 @@ const CreateDealPage = () => {
     // Basic Info validation
     if (!data.title?.trim()) {
       errors.title = "Deal title is required";
+    }
+
+    if (!data.dealVariant || !["MAIN", "FLASH", "SUPER", "MEGA"].includes(data.dealVariant)) {
+      errors.dealVariant = "Deal variant is required and must be one of MAIN, FLASH, SUPER, MEGA";
     }
 
     if (!data.discountType) {
@@ -63,6 +68,7 @@ const CreateDealPage = () => {
     formData.append("title", data.title || "");
     if (data.description) formData.append("description", data.description);
     if (data.btnText) formData.append("btnText", data.btnText);
+    formData.append("dealVariant", data.dealVariant || "MAIN");
 
     // Target Selection
     formData.append("isGlobal", data.isGlobal ? "true" : "false");
@@ -96,6 +102,9 @@ const CreateDealPage = () => {
 
     // Priority
     formData.append("priority", data.priority || "1");
+
+    // Active Status
+    formData.append("isActive", data.isActive ? "true" : "false");
 
     // Images - desktop and mobile (only append if files exist)
     if (data.desktopImageFile && data.desktopImageFile instanceof File) {
