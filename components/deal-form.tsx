@@ -35,6 +35,7 @@ import {
   Plus,
   Monitor,
   Smartphone,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export interface DealFormData {
   title: string;
   description: string;
   btnText: string;
+  dealVariant: "MAIN" | "FLASH" | "SUPER" | "MEGA";
   desktopImage: string;
   desktopImageFile: File | null;
   mobileImage: string;
@@ -56,6 +58,7 @@ export interface DealFormData {
   startDate: string;
   endDate: string;
   priority: string;
+  isActive: boolean;
 }
 
 interface DealFormProps {
@@ -88,6 +91,7 @@ const DealForm: React.FC<DealFormProps> = ({
     title,
     description,
     btnText,
+    dealVariant,
     desktopImage,
     desktopImageFile,
     mobileImage,
@@ -104,6 +108,7 @@ const DealForm: React.FC<DealFormProps> = ({
     setTitle,
     setDescription,
     setBtnText,
+    setDealVariant,
     setDesktopImage,
     setDesktopImageFile,
     setMobileImage,
@@ -123,6 +128,8 @@ const DealForm: React.FC<DealFormProps> = ({
     setStartDate,
     setEndDate,
     setPriority,
+    isActive,
+    setIsActive,
     resetDealForm,
   } = useDealFormStore();
 
@@ -231,6 +238,7 @@ const DealForm: React.FC<DealFormProps> = ({
       title,
       description,
       btnText,
+      dealVariant,
       desktopImage,
       desktopImageFile,
       mobileImage,
@@ -245,6 +253,7 @@ const DealForm: React.FC<DealFormProps> = ({
       startDate,
       endDate,
       priority,
+      isActive,
     };
   };
 
@@ -438,6 +447,34 @@ const DealForm: React.FC<DealFormProps> = ({
                   />
                   <p className="text-xs text-muted-foreground">
                     Text displayed on the deal banner button
+                  </p>
+                </div>
+
+                {/* Deal Variant */}
+                <div className="space-y-2">
+                  <Label htmlFor="dealVariant" className="text-default-600">
+                    Deal Variant <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={dealVariant}
+                    onValueChange={(value) =>
+                      setDealVariant(
+                        value as "MAIN" | "FLASH" | "SUPER" | "MEGA"
+                      )
+                    }
+                  >
+                    <SelectTrigger id="dealVariant">
+                      <SelectValue placeholder="Select deal variant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MAIN">MAIN</SelectItem>
+                      <SelectItem value="FLASH">FLASH</SelectItem>
+                      <SelectItem value="SUPER">SUPER</SelectItem>
+                      <SelectItem value="MEGA">MEGA</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select the type of deal variant.
                   </p>
                 </div>
               </CardContent>
@@ -791,6 +828,8 @@ const DealForm: React.FC<DealFormProps> = ({
               </CardContent>
             </Card>
 
+            {/* Time Window & Status Card */}
+            {/* Note: existing time window card is elsewhere; we add Active toggle near dates there */}
             {/* Discount Details Card */}
             <Card>
               <CardHeader className="border-b border-border pb-4">
@@ -853,7 +892,7 @@ const DealForm: React.FC<DealFormProps> = ({
               <CardHeader className="border-b border-border pb-4">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  Time Window
+                  Time Window & Status
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
@@ -886,6 +925,27 @@ const DealForm: React.FC<DealFormProps> = ({
                       min={startDate || undefined}
                     />
                   </div>
+                </div>
+
+                {/* Active / Inactive Toggle */}
+                <div className="flex items-center justify-between p-4 border border-default-200 rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label
+                      htmlFor="isActive"
+                      className="text-default-600 flex items-center gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Active / Inactive
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Turn this off to pause the deal without changing the dates.
+                    </p>
+                  </div>
+                  <Switch
+                    id="isActive"
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                  />
                 </div>
               </CardContent>
             </Card>

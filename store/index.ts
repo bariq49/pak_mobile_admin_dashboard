@@ -642,6 +642,7 @@ interface DealFormStoreState {
   title: string;
   description: string;
   btnText: string;
+  dealVariant: "MAIN" | "FLASH" | "SUPER" | "MEGA";
   
   // Images
   desktopImage: string;
@@ -665,11 +666,15 @@ interface DealFormStoreState {
   
   // Priority
   priority: string;
+
+  // Active status
+  isActive: boolean;
   
   // Actions - Basic Info
   setTitle: (value: string) => void;
   setDescription: (value: string) => void;
   setBtnText: (value: string) => void;
+  setDealVariant: (value: "MAIN" | "FLASH" | "SUPER" | "MEGA") => void;
   
   // Actions - Images
   setDesktopImage: (value: string) => void;
@@ -699,6 +704,9 @@ interface DealFormStoreState {
   
   // Actions - Priority
   setPriority: (value: string) => void;
+
+  // Actions - Active
+  setIsActive: (value: boolean) => void;
   
   // Reset store to initial state
   resetDealForm: () => void;
@@ -712,6 +720,7 @@ const initialDealFormState = {
   title: "",
   description: "",
   btnText: "Shop Now",
+  dealVariant: "MAIN" as "MAIN" | "FLASH" | "SUPER" | "MEGA",
   
   // Images
   desktopImage: "",
@@ -735,6 +744,9 @@ const initialDealFormState = {
   
   // Priority
   priority: "1",
+
+  // Active status
+  isActive: true,
 };
 
 export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
@@ -744,6 +756,7 @@ export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
   setTitle: (value: string) => set({ title: value }),
   setDescription: (value: string) => set({ description: value }),
   setBtnText: (value: string) => set({ btnText: value }),
+  setDealVariant: (value: "MAIN" | "FLASH" | "SUPER" | "MEGA") => set({ dealVariant: value }),
   
   // Images Actions
   setDesktopImage: (value: string) => set({ desktopImage: value }),
@@ -809,6 +822,9 @@ export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
   
   // Priority Actions
   setPriority: (value: string) => set({ priority: value }),
+
+  // Active Actions
+  setIsActive: (value: boolean) => set({ isActive: value }),
   
   // Reset to initial state
   resetDealForm: () => set(initialDealFormState),
@@ -836,6 +852,9 @@ export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
       title: deal.title || "",
       description: deal.description || "",
       btnText: deal.btnText || "Shop Now",
+      dealVariant: (deal.dealVariant === "MAIN" || deal.dealVariant === "FLASH" || deal.dealVariant === "SUPER" || deal.dealVariant === "MEGA")
+        ? deal.dealVariant
+        : "MAIN" as "MAIN" | "FLASH" | "SUPER" | "MEGA",
       
       // Images
       desktopImage: desktopImageUrl,
@@ -867,6 +886,9 @@ export const useDealFormStore = create<DealFormStoreState>()((set, get) => ({
       
       // Priority
       priority: deal.priority !== undefined ? deal.priority.toString() : "1",
+
+      // Active status
+      isActive: typeof deal.isActive === "boolean" ? deal.isActive : true,
     };
     
     set(newState);

@@ -6,6 +6,7 @@ export interface Deal {
   _id: string;
   title: string;
   description?: string;
+  dealVariant?: "MAIN" | "FLASH" | "SUPER" | "MEGA";
   image?: {
     desktop?: {
       url: string;
@@ -50,6 +51,7 @@ export interface CreateDealPayload {
   title: string;
   description?: string;
   btnText?: string;
+  dealVariant: "MAIN" | "FLASH" | "SUPER" | "MEGA";
   products?: string[];
   categories?: string[];
   subCategories?: string[];

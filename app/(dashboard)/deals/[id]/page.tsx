@@ -180,6 +180,21 @@ const DealDetailsPage = () => {
                     Expired
                   </Badge>
                 )}
+                {/* Deal Variant */}
+                <Badge
+                  variant="outline"
+                  className={`${
+                    (deal as any)?.dealVariant === "FLASH"
+                      ? "bg-amber-50 text-amber-700"
+                      : (deal as any)?.dealVariant === "SUPER"
+                      ? "bg-blue-50 text-blue-700"
+                      : (deal as any)?.dealVariant === "MEGA"
+                      ? "bg-purple-50 text-purple-700"
+                      : "bg-default-50 text-default-700"
+                  }`}
+                >
+                  {(deal as any)?.dealVariant || "MAIN"}
+                </Badge>
               </CardTitle>
               {deal?.description && (
                 <CardDescription className="mt-2">
@@ -217,6 +232,12 @@ const DealDetailsPage = () => {
                   <div>
                     <p className="text-muted-foreground">Button Text</p>
                     <p className="font-medium">{deal.btnText || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Variant</p>
+                    <p className="font-medium">
+                      {(deal as any)?.dealVariant || "MAIN"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Priority</p>

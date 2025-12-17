@@ -107,6 +107,38 @@ export function getDealColumns({
       },
     },
     {
+      accessorKey: "dealVariant",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Variant" />
+      ),
+      cell: ({ row }) => {
+        const deal = row.original as Deal & { dealVariant?: string };
+        const variant = deal.dealVariant || "MAIN";
+
+        const getVariantStyle = (v: string) => {
+          switch (v) {
+            case "FLASH":
+              return "bg-amber-50 text-amber-700 border-amber-200";
+            case "SUPER":
+              return "bg-blue-50 text-blue-700 border-blue-200";
+            case "MEGA":
+              return "bg-purple-50 text-purple-700 border-purple-200";
+            default:
+              return "bg-default-50 text-default-700 border-default-200";
+          }
+        };
+
+        return (
+          <Badge
+            variant="outline"
+            className={`${getVariantStyle(variant)} capitalize`}
+          >
+            {variant}
+          </Badge>
+        );
+      },
+    },
+    {
       accessorKey: "target",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Target" />
@@ -317,6 +349,13 @@ export function getDealFilterColumns(deals: Deal[]) {
   const statuses = Array.from(
     new Set(deals.map((d) => (d.isActive ? "Active" : "Inactive")))
   );
+  const variants = Array.from(
+    new Set(
+      deals
+        .map((d) => (d as Deal & { dealVariant?: string }).dealVariant || "MAIN")
+        .filter(Boolean)
+    )
+  );
 
   return [
     {
@@ -337,6 +376,16 @@ export function getDealFilterColumns(deals: Deal[]) {
         label: status,
         value: status === "Active" ? "true" : "false",
         icon: status === "Active" ? CheckCircle2 : XCircle,
+      })),
+    },
+    {
+      column: "dealVariant",
+      title: "Variant",
+      multiple: true,
+      options: variants.map((variant) => ({
+        label: variant,
+        value: variant,
+        icon: Tag,
       })),
     },
   ];
