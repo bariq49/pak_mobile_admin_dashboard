@@ -65,19 +65,67 @@ export interface Transaction {
   createdAt: string;
 }
 
+export interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+  product?: {
+    name: string;
+    slug?: string;
+    image?: string | null;
+    _id?: string;
+  } | null;
+  image?: {
+    _id?: string;
+    original?: string;
+    thumbnail?: string;
+  };
+}
+
+export interface ShippingAddress {
+  fullName?: string;
+  phoneNumber?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  area?: string;
+  streetAddress?: string;
+  apartment?: string;
+  postalCode?: string;
+  label?: string;
+}
+
 export interface Order {
   _id: string;
   id?: string;
   orderNumber: string;
   invoice?: string;
+  trackingNumber?: string;
   customerId: string;
   customerName: string;
+  customerEmail?: string;
   username?: string;
+  user?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  items?: OrderItem[];
+  shippingAddress?: ShippingAddress;
   amount: number;
-  totalAmount?: number; // Backend sends this field
+  totalAmount?: number;
+  subtotal?: number;
+  shippingFee?: number;
+  discount?: number;
+  coupon?: string;
   status: string;
+  orderStatus?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  paymentIntentId?: string;
   isComplete?: boolean;
   createdAt: string;
+  updatedAt?: string;
   date?: string;
 }
 
@@ -149,9 +197,9 @@ export function transformDashboardStats(
     }
 
     return {
-      totalSales: stats.revenue?.total || 0,
+      totalSales: stats.revenue?.total || 0, // All-time total sales
       todayOrders: stats.orders?.today || 0,
-      completedOrders: stats.orders?.paid || 0, // Backend uses 'paid' for completed orders
+      completedOrders: stats.orders?.completed || stats.orders?.paid || 0, // Use 'completed' if available, fallback to 'paid'
       pendingOrders: stats.orders?.pending || 0,
     };
   } catch (error) {
@@ -274,17 +322,92 @@ export function transformOrders(
       // Keep "N/A" if date parsing fails
     }
 
+    // Calculate subtotal from items if not provided
+    const items = order?.items || [];
+    const calculatedSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // Extract customer info - handle different possible structures
+    // API might return: customer.name, customer.user.name, or user.name
+    let customerName = "Unknown Customer";
+    let customerEmail = "";
+
+    if (order?.customer) {
+      if (typeof order.customer === "object") {
+        // Try customer.name first (most common)
+        if (order.customer.name) {
+          customerName = order.customer.name;
+        }
+        // Try customer.user.name (nested structure)
+        else if ((order.customer as any)?.user?.name) {
+          customerName = (order.customer as any).user.name;
+        }
+        // Try customer.fullName (alternative field)
+        else if ((order.customer as any)?.fullName) {
+          customerName = (order.customer as any).fullName;
+        }
+
+        // Extract email
+        if (order.customer.email) {
+          customerEmail = order.customer.email;
+        } else if ((order.customer as any)?.user?.email) {
+          customerEmail = (order.customer as any).user.email;
+        }
+      }
+    }
+
+    // Fallback: check if there's a user field at order level
+    if (customerName === "Unknown Customer" && (order as any)?.user?.name) {
+      customerName = (order as any).user.name;
+    }
+    if (!customerEmail && (order as any)?.user?.email) {
+      customerEmail = (order as any).user.email;
+    }
+
+    // Extract order ID - backend might return 'id' or '_id' (MongoDB typically uses _id)
+    // Check both possibilities and log if neither exists for debugging
+    const orderId = (order as any)?._id || order?.id || (order as any)?.id || "";
+    
+    // Debug log if orderId is missing (only in development)
+    if (!orderId && process.env.NODE_ENV === 'development') {
+      console.warn('Order ID missing in transformer. Order object keys:', Object.keys(order || {}));
+      console.warn('Order object:', order);
+    }
+    
     return {
-      _id: order?.id || "",
-      id: order?.id || "",
+      _id: orderId,
+      id: orderId,
       orderNumber: order?.orderNumber || "",
       invoice: order?.orderNumber || "",
-      customerId: order?.customer?.email || "",
-      customerName: order?.customer?.name || "N/A",
-      username: order?.customer?.name || "N/A",
+      trackingNumber: order?.trackingNumber,
+      customerId: customerEmail,
+      customerName: customerName,
+      customerEmail: customerEmail,
+      username: customerName,
+      user: order?.customer ? {
+        _id: customerEmail || "",
+        name: customerName,
+        email: customerEmail || "",
+      } : undefined,
+      items: items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        product: item.product ? {
+          name: item.product.name,
+          slug: item.product.slug,
+          image: item.product.image,
+        } : null,
+      })),
+      shippingAddress: order?.shippingAddress,
       amount: order?.totalAmount || 0,
       totalAmount: order?.totalAmount,
+      subtotal: calculatedSubtotal,
+      shippingFee: (order?.totalAmount || 0) - calculatedSubtotal, // Approximate if not provided
+      discount: 0,
       status: order?.orderStatus || "",
+      orderStatus: order?.orderStatus || "",
+      paymentStatus: order?.paymentStatus || "",
+      paymentMethod: order?.paymentMethod || "",
       isComplete: order?.orderStatus === "completed" || order?.orderStatus === "delivered",
       createdAt,
       date: dateStr,

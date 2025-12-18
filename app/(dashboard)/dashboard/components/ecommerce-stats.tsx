@@ -20,7 +20,17 @@ const EcommerceStats = () => {
     if (number >= 1000) {
       return (number / 1000).toFixed(2) + "K";
     }
-    return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return number.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  };
+
+  const formatCurrency = (num: number | undefined | null): string => {
+    if (!num && num !== 0) return "€0.00";
+    const number = Number(num);
+    if (isNaN(number)) return "€0.00";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "EUR",
+    }).format(number);
   };
 
   const statsData: DashboardStats = stats || {
@@ -33,7 +43,7 @@ const EcommerceStats = () => {
   const data = [
     {
       text: "Total Sales",
-      total: `$${formatNumber(statsData.totalSales)}`,
+      total: formatCurrency(statsData.totalSales), // All-time total sales in EUR
       color: "primary",
       icon: <Trophy className="w-3.5 h-3.5" />
     },
