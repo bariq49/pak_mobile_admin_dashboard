@@ -3,7 +3,7 @@
 const getBaseUrl = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!apiUrl) {
-    return "http://localhost:5000";
+    return "https://pak-mobile-store-backend.vercel.app";
   }
   // Remove trailing /api/v1 if present
   return apiUrl.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
@@ -51,12 +51,6 @@ export const API_RESOURCES = {
   DASHBOARD_TOP_PRODUCTS: `${BASE_URL}/api/v1/admin/dashboard/top-products`,
   DASHBOARD_TOP_CUSTOMERS: `${BASE_URL}/api/v1/admin/dashboard/top-customers`,
   DASHBOARD_VISITORS: `${BASE_URL}/api/v1/admin/dashboard/visitors`,
-
-  // Orders Management
-  ORDERS_ADMIN_ALL: `${BASE_URL}/api/v1/orders/admin/all`,
-  ORDER_BY_ID: `${BASE_URL}/api/v1/orders/:id`,
-  UPDATE_ORDER_STATUS: `${BASE_URL}/api/v1/orders/admin/:id/status`,
-  UPDATE_ORDER: `${BASE_URL}/api/v1/orders/:id/status`,
 
   // File Upload
   UPLOAD: `${BASE_URL}/api/v1/upload`,
