@@ -53,10 +53,12 @@ export const API_RESOURCES = {
   DASHBOARD_VISITORS: `${BASE_URL}/api/v1/admin/dashboard/visitors`,
 
   // Admin Orders
-  ORDERS_ADMIN_ALL: `${BASE_URL}/api/v1/admin/orders`,
-  ORDER_BY_ID: `${BASE_URL}/api/v1/admin/orders/:id`,
-  UPDATE_ORDER_STATUS: `${BASE_URL}/api/v1/admin/orders/:id/status`,
-  UPDATE_ORDER: `${BASE_URL}/api/v1/admin/orders/:id`,
+  // Full orders management (mounted at /api/v1/orders; router.get("/admin/all", ...))
+  ORDERS_ADMIN_ALL: `${BASE_URL}/api/v1/orders/admin/all`,
+  // These assume you have corresponding admin routes under /api/v1/orders/admin
+  ORDER_BY_ID: `${BASE_URL}/api/v1/orders/admin/:id`,
+  UPDATE_ORDER_STATUS: `${BASE_URL}/api/v1/orders/admin/:id/status`,
+  UPDATE_ORDER: `${BASE_URL}/api/v1/orders/admin/:id`,
 
   // File Upload
   UPLOAD: `${BASE_URL}/api/v1/upload`,
