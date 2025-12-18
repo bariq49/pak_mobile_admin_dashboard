@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Period } from "@/api/dashboard/dashboard.api";
 import {
   getDashboardStatsApi,
@@ -11,6 +11,10 @@ import {
   getTopProductsApi,
   getTopCustomersApi,
   getVisitorsReportApi,
+  getAllOrdersApi,
+  getOrderByIdApi,
+  updateOrderStatusApi,
+  updateOrderApi,
 } from "@/api/dashboard/dashboard.api";
 import {
   transformDashboardStats,
@@ -183,6 +187,82 @@ export const useVisitorsReportQuery = (
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
+  });
+};
+
+/* ============ ALL ORDERS (ADMIN) ============ */
+export const useAllOrdersQuery = (
+  page: number = 1,
+  limit: number = 20,
+  sort_by?: string
+) => {
+  return useQuery<{
+    orders: Order[];
+    total: number;
+    page: number;
+    pages: number;
+  }>({
+    queryKey: ["orders", "all", page, limit, sort_by],
+    queryFn: async () => {
+      const response = await getAllOrdersApi(page, limit, sort_by);
+      return transformOrders(response);
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+/* ============ ORDER BY ID ============ */
+export const useOrderByIdQuery = (orderId: string | null) => {
+  return useQuery({
+    queryKey: ["order", orderId],
+    queryFn: async () => {
+      if (!orderId) return null;
+      const response = await getOrderByIdApi(orderId);
+      return response.data.order;
+    },
+    enabled: !!orderId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+/* ============ UPDATE ORDER STATUS MUTATION ============ */
+export const useUpdateOrderStatusMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      return await updateOrderStatusApi(orderId, status);
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "orders"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+    },
+  });
+};
+
+/* ============ UPDATE ORDER MUTATION ============ */
+export const useUpdateOrderMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      updates,
+    }: {
+      orderId: string;
+      updates: { paymentStatus?: string; orderStatus?: string };
+    }) => {
+      return await updateOrderApi(orderId, updates);
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "orders"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+    },
   });
 };
 

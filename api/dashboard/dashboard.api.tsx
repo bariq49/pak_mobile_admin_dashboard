@@ -19,7 +19,8 @@ export interface DashboardStatsResponse {
         today: number;
         monthly: number;
         pending: number;
-        paid: number;
+        paid?: number;
+        completed?: number;
       };
       customers: {
         total: number;
@@ -340,6 +341,144 @@ export async function getVisitorsReportApi(
   const { data } = await http.get<VisitorsReportResponse>(
     API_RESOURCES.DASHBOARD_VISITORS,
     { params }
+  );
+  return data;
+}
+
+/**
+ * Get all orders (Admin)
+ * @param page - Page number (default: 1)
+ * @param limit - Items per page (default: 20)
+ * @param sort_by - Sort option (optional, e.g., "new_arrival")
+ */
+export async function getAllOrdersApi(
+  page: number = 1,
+  limit: number = 20,
+  sort_by?: string
+): Promise<OrdersResponse> {
+  const params: Record<string, string | number> = { page, limit };
+  
+  if (sort_by) params.sort_by = sort_by;
+
+  // Extract path from full URL (axios will use full URL and ignore baseURL)
+  const url = API_RESOURCES.ORDERS_ADMIN_ALL;
+  const { data } = await http.get<OrdersResponse>(
+    url,
+    { params }
+  );
+  
+  // Debug: Log first order to see what the API actually returns
+  if (process.env.NODE_ENV === 'development' && data?.data?.orders?.[0]) {
+    const firstOrder = data.data.orders[0];
+    console.log('API Response - First order structure:', {
+      hasId: !!firstOrder.id,
+      has_id: !!(firstOrder as any)._id,
+      id: firstOrder.id,
+      _id: (firstOrder as any)._id,
+      orderNumber: firstOrder.orderNumber,
+      allKeys: Object.keys(firstOrder),
+    });
+  }
+  
+  return data;
+}
+
+/**
+ * Get single order by ID
+ * @param orderId - Order ID
+ */
+export async function getOrderByIdApi(
+  orderId: string
+): Promise<{ status: string; data: { order: OrdersResponse["data"]["orders"][0] } }> {
+  // Validate orderId is not empty
+  if (!orderId || orderId.trim() === '') {
+    throw new Error('Order ID is required');
+  }
+
+  const url = API_RESOURCES.ORDER_BY_ID.replace(":id", orderId);
+  
+  // Validate URL doesn't have double slashes (indicates missing ID)
+  if (url.includes('//') && url.includes('/orders//')) {
+    throw new Error(`Invalid order ID: "${orderId}". URL generated: ${url}`);
+  }
+
+  const { data } = await http.get<{ status: string; data: { order: OrdersResponse["data"]["orders"][0] } }>(url);
+  return data;
+}
+
+/**
+ * Update order status (Admin)
+ * @param orderId - Order ID (MongoDB ObjectId, NOT orderNumber)
+ * @param status - New order status
+ */
+export async function updateOrderStatusApi(
+  orderId: string,
+  status: string
+): Promise<{ status: string; message: string; data: { order: OrdersResponse["data"]["orders"][0] } }> {
+  // Validate orderId is not empty
+  if (!orderId || orderId.trim() === '') {
+    throw new Error('Order ID is required');
+  }
+
+  // Validate that orderId is a MongoDB ObjectId format (24 hex characters), not an order number
+  // MongoDB ObjectId is 24 hex characters, order numbers typically start with "ORD-" or similar
+  if (orderId.startsWith('ORD-') || orderId.includes('-') && !/^[0-9a-fA-F]{24}$/.test(orderId)) {
+    throw new Error(`Invalid order ID format: "${orderId}". Expected MongoDB ObjectId (24 hex characters), but received what appears to be an order number. Use order._id instead of order.orderNumber.`);
+  }
+
+  // Validate MongoDB ObjectId format (24 hex characters)
+  if (!/^[0-9a-fA-F]{24}$/.test(orderId)) {
+    console.warn(`Order ID "${orderId}" does not match MongoDB ObjectId format (24 hex characters). This may cause a 400 error.`);
+  }
+
+  const url = API_RESOURCES.UPDATE_ORDER_STATUS.replace(":id", orderId);
+  
+  // Validate URL doesn't have double slashes (indicates missing ID)
+  if (url.includes('//status') || url.includes('/admin//')) {
+    throw new Error(`Invalid order ID: "${orderId}". URL generated: ${url}`);
+  }
+
+  const { data } = await http.patch<{ status: string; message: string; data: { order: OrdersResponse["data"]["orders"][0] } }>(
+    url,
+    { status }
+  );
+  return data;
+}
+
+/**
+ * Update order (payment status and/or order status)
+ * @param orderId - Order ID (MongoDB ObjectId, NOT orderNumber)
+ * @param updates - Update payload with paymentStatus and/or orderStatus
+ */
+export async function updateOrderApi(
+  orderId: string,
+  updates: { paymentStatus?: string; orderStatus?: string }
+): Promise<{ status: string; message: string; data: { order: OrdersResponse["data"]["orders"][0] } }> {
+  // Validate orderId is not empty
+  if (!orderId || orderId.trim() === '') {
+    throw new Error('Order ID is required');
+  }
+
+  // Validate that orderId is a MongoDB ObjectId format (24 hex characters), not an order number
+  if (orderId.startsWith('ORD-') || orderId.includes('-') && !/^[0-9a-fA-F]{24}$/.test(orderId)) {
+    throw new Error(`Invalid order ID format: "${orderId}". Expected MongoDB ObjectId (24 hex characters), but received what appears to be an order number. Use order._id instead of order.orderNumber.`);
+  }
+
+  // Validate MongoDB ObjectId format (24 hex characters)
+  if (!/^[0-9a-fA-F]{24}$/.test(orderId)) {
+    console.warn(`Order ID "${orderId}" does not match MongoDB ObjectId format (24 hex characters). This may cause a 400 error.`);
+  }
+
+  const url = API_RESOURCES.UPDATE_ORDER.replace(":id", orderId);
+  
+  // Validate URL doesn't have double slashes (indicates missing ID)
+  if (url.includes('//status') || url.includes('/orders//')) {
+    throw new Error(`Invalid order ID: "${orderId}". URL generated: ${url}`);
+  }
+
+  const { data } = await http.put<{ status: string; message: string; data: { order: OrdersResponse["data"]["orders"][0] } }>(
+    url,
+    updates
   );
   return data;
 }

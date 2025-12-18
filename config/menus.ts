@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   Clipboard,
   Flag,
+  Package,
 } from "lucide-react";
 
 
@@ -110,6 +111,11 @@ export const menusConfig = {
             href: "/deals/create",
           },
         ]
+      },
+      {
+        title: "Orders",
+        href: "/orders",
+        icon: Package,
       },
     ],
   },

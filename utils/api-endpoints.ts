@@ -52,6 +52,12 @@ export const API_RESOURCES = {
   DASHBOARD_TOP_CUSTOMERS: `${BASE_URL}/api/v1/admin/dashboard/top-customers`,
   DASHBOARD_VISITORS: `${BASE_URL}/api/v1/admin/dashboard/visitors`,
 
+  // Admin Orders
+  ORDERS_ADMIN_ALL: `${BASE_URL}/api/v1/admin/orders`,
+  ORDER_BY_ID: `${BASE_URL}/api/v1/admin/orders/:id`,
+  UPDATE_ORDER_STATUS: `${BASE_URL}/api/v1/admin/orders/:id/status`,
+  UPDATE_ORDER: `${BASE_URL}/api/v1/admin/orders/:id`,
+
   // File Upload
   UPLOAD: `${BASE_URL}/api/v1/upload`,
   UPLOAD_MULTIPLE: `${BASE_URL}/api/v1/upload/multiple`,
